@@ -4,7 +4,7 @@ numbersections: true
 \numberwithin{figure}{section}
 \pagenumbering{roman}
 \setstretch{1}
-\setlength{\parskip}{12pt}
+\setlength{\parskip}{9pt}
 
 \begin{center}
 
@@ -12,7 +12,8 @@ numbersections: true
 
 By
 
-DAVID JAY HARRIS\\
+DAVID JAY HARRIS
+
 Bachelor of Arts (Washington University in St. Louis) 2008
 
 DISSERTATION
@@ -31,37 +32,59 @@ OFFICE OF GRADUATE STUDIES
 
 of the
 
-UNIVERSITY OF California
+UNIVERSITY OF CALIFORNIA
 
-Davis
+DAVIS
 
 Approved:
 
+\setlength{\parskip}{20pt}
+
+\underline{\hspace{8cm}}\\
+Andrew Sih, Chair
+
+\underline{\hspace{8cm}}\\
+Marissa L. Baskett
+
+\underline{\hspace{8cm}}\\
+Robert Hijmans
+
+\underline{\hspace{8cm}}\\
+Richard McElreath
+
+
+Committee in charge
+
+2015
+
 \end{center}
 \setlength{\parskip}{6pt}
-
-
-\newpage
-
-asdf
-
-\newpage
-
-df
 
 \newpage
 
 \hypersetup{linkcolor=black}
 \tableofcontents
 
+\newpage
+\setstretch{2}
+
+## Abstract
+
+asdf
+
+\newpage
+
+## Acknowledgements
+
+asdf
+
+\newpage
+
 
 \newpage
 
 \pagenumbering{arabic}
 \setcounter{page}{1}
-
-
-\setstretch{2}
 
 # Generating realistic assemblages with a Joint Species Distribution Model
 
