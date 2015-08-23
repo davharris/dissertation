@@ -68,6 +68,7 @@ Committee in charge
 
 \hypersetup{linkcolor=black}
 \tableofcontents
+\setlength{\parindent}{1cm}
 
 \newpage
 \setstretch{2}
@@ -472,12 +473,11 @@ discussed in the next section.
 A Markov network defines the relative probability of observing a given vector of
 species-level presences (1s) and absences (0s), $\vec{y}$, as
 
-\centering
+\begin{center}
 
 $p(\vec{y}; \alpha, \beta) \propto exp(\sum_{i}\alpha_i y_i + \sum_{i\neq j}\beta_{ij}y_i y_j).$
 
-\raggedright
-\setlength{\parindent}{1cm}
+\end{center}
 
 Here, $\alpha_{i}$ is an intercept term determining the amount that the presence
 of species $i$ contributes to the log-probability of $\vec{y}$; it directly
@@ -906,31 +906,32 @@ Even without better data, ecologists have a number of options for expanding beyo
 
 \subsection{Data}
 
-Code for this section can be found in
-`mistnet/extras/BBS-analysis/data_extraction/data-extraction.R` in the version control repository at https://github.com/davharris/mistnet/.
+Code for this section can be found in  
+`mistnet/extras/BBS-analysis/data_extraction/data-extraction.R`
+in the version control repository at https://github.com/davharris/mistnet/.
 
-\subsubsection{Partitioning training and test data}
+\subsubsection*{Partitioning training and test data}
 
 A set of evenly-spaced coordinates were selected across the Earth's surface using `regularCoordinates(12)` in the `geosphere` R package [@hijmans_geosphere_2012]. The 1559 routes that were more than 300 km from all of these coordinates were included in the training set, while the 280 routes that were less than 150 km away from one of them were included in the test set.
 
-\subsubsection{Criteria for including a species in the data set}
+\subsubsection*{Criteria for including a species in the data set}
 
 Hybrids and other ambiguous taxa were identified using simple heuristics (e.g. if the listed common or Latin name included the word "or").
 Such species were excluded from the analysis; code for the heuristics used is available on the mistnet package's version control repository (`mistnet/extras/BBS-analysis/data_extraction/species-handling.R`).
 I also omitted any species that were observed along fewer than 10 training routes to ensure that enough data points were available for cross-validation. This left a pool of 368 species for analysis.
 
-\subsubsection{Included climate predictors}
+\subsubsection*{Included climate predictors}
 
 The following eight climate predictors were selected out of the 19 Bioclim variables in the Worldclim data set, omitting nearly-collinear variables identified with the `findCorrelation` function in the `caret` package [@kuhn_caret_2012]:
 
->bio2: Mean Diurnal Range
->bio3: Isothermality
->bio5: Max Temperature of Warmest Month
->bio8: Mean Temperature of Wettest Quarter
->bio9: Mean Temperature of Driest Quarter
->bio15: Precipitation Seasonality
->bio16: Precipitation of Wettest Quarter
->bio18: Precipitation of Warmest Quarter
+>bio2: Mean Diurnal Range  
+>bio3: Isothermality  
+>bio5: Max Temperature of Warmest Month  
+>bio8: Mean Temperature of Wettest Quarter  
+>bio9: Mean Temperature of Driest Quarter  
+>bio15: Precipitation Seasonality  
+>bio16: Precipitation of Wettest Quarter  
+>bio18: Precipitation of Warmest Quarter  
 
 
 \subsection{Neural network structure}
@@ -965,13 +966,13 @@ The mistnet code then adjusts the model parameters in the direction of this esti
 
 \subsection{Model configuration}
 
-\subsubsection{BRT}
+\subsubsection*{BRT}
 
 All these analyses used the `gbm` package.
 For each species, I evaluated BRT models with `interaction.depth` of 2, 5, and 8, and with up to 10,000 trees, using the default learning rate of 0.001.
 The number and depth of the trees was chosen by separate 5-fold cross-validations for each species [@murphy_machine_2012].  See `mistnet/extras/BBS-analysis/BBS_evaluation/gbm.R`.
 
-\subsubsection{Deterministic neural net}
+\subsubsection*{Deterministic neural net}
 
 `nnet`'s hyperparameters were optimized using random search [@bergstra_random_2012].
 During this search, the number of hidden units was sampled uniformly between 1 and 50 and the weight decay was sampled from an exponential distribution with rate parameter 1.
@@ -979,16 +980,17 @@ The model was allowed 1,000 BFGS iterations to optimize the log-likelihood in ea
 The model was fit with 8 different configurations of hidden layer sizes and weight decay values, and the best configuration was selected by five-fold cross-validation.
 See `mistnet/extras/BBS-analysis/BBS_evaluation/nnet-evaluation.R`.
 
-\subsubsection{BayesComm}
+\subsubsection*{BayesComm}
 
-I used a development version of BayesComm.  This version can be downloaded and installed using the `devtools` package using the following command:
-`install_github("goldingn/BayesComm", ref = "0d710cda46a6e7427a560ee5b816c8ef5cd03eeb")`.
+I used a development version of BayesComm.  This version can be downloaded and installed using the `devtools` package using the following command:  
+`install_github("goldingn/BayesComm",`  
+`ref = "0d710cda46a6e7427a560ee5b816c8ef5cd03eeb")`.
 
 I used the "full" model type, which models species' responses to both observed and latent environmental factors.
 BayesComm performed 42,000 rounds of Gibbs sampling, discarding the first 2,000 values as "burn-in" and retaining every 80th sample thereafter.
 This left 500 samples, which was a small enough number to fit in 8 gigabytes of memory with some room to spare for additional computations.  See `mistnet/extras/BBS-analysis/BBS_evaluation/bayescomm.R`
 
-\subsubsection{mistnet}
+\subsubsection*{mistnet}
 
 Worldclim variables were standardized to have zero mean and unit variance. The coefficients in each layer were initialized as random samples from a zero-mean Gaussian with a variance of 0.01.
 Bias (intercept) terms in the first layer were manually initialized at 1; bias terms in the second layer were left initialized at 0; bias terms in the final layer were automatically initialized as $\mathrm{log}(\frac{p}{1-p})$, where $p$ is the proportion of routes where the corresponding species was observed.
@@ -1037,6 +1039,934 @@ See `mistnet/extras/BBS-analysis/BBS_evaluation/mistnet_cross-validation.R` for 
 The variance decomposition at the beginning of the Results section was performed as follows.
 For each species, I found the total variance in model predictions across both routes and Monte Carlo samples, as well as the residual variance within routes (i.e. after climate was accounted for).
 The proportion of non-climate variance for that species was calculated as residual variance divided by total variance.
+
+
+\newpage
+
+\section{Appendices to Chapter 2}
+
+\subsection{Three species}
+
+Load dependencies
+
+\setstretch{1}
+```r
+library(dplyr)
+library(magrittr)
+library(rosalia)
+library(knitr)
+library(corpcor)
+
+set.seed(1)
+```
+
+Generate the species interaction matrix from Figure 1.
+
+
+```r
+alpha = c(3, 2, 1)
+beta = matrix(
+  c(0, -3, -3, -3, 0, -1, -3, -1, 0),
+  nrow = 3,
+  dimnames = replicate(2, c("tree", "shrub1", "shrub2"), simplify = FALSE)
+)
+
+kable(beta)
+```
+
+
+
+|       | tree| shrub1| shrub2|
+|:------|----:|------:|------:|
+|tree   |    0|     -3|     -3|
+|shrub1 |   -3|      0|     -1|
+|shrub2 |   -3|     -1|      0|
+
+
+```r
+# Simulated community has three species at some of 100 locations
+n_spp = 3
+n_sites = 10000
+
+# Re-organize the coefficients for rosalia
+truth = c(beta[upper.tri(beta)], alpha)
+
+# Enumerate the 8 possible species assemblages
+# using an internal rosalia function
+possibilities = rosalia:::generate_possibilities(n_spp)
+
+# In each of these 8 possible assemblages, which of the 6 possible
+# species pairs *both* occur?
+possible_cooc = sapply(
+  1:2^n_spp,
+  function(i){
+    tcp = tcrossprod(possibilities[i, ])
+    c(tcp[upper.tri(tcp)], diag(tcp))
+  }
+)
+```
+
+\setstretch{2}
+
+Simulate 1000 assemblages of 3 species across 100 sites.
+
+Once a landscape has been simulated, test whether `rosalia`, the sample correlation, and the partial
+correlation got the sign of the shrub-shrub interaction correct.
+
+\setstretch{1}
+
+```r
+evaluation = sapply(
+  1:1000,
+  function(i){
+    x = rosalia:::simulate_data(
+      par = truth,
+      possibilities = possibilities,
+      possible_cooc = possible_cooc,
+      n_sites = n_sites
+    )
+    if(paste0("fakedata/three/", i, ".txt") %in% dir("fakedata/three",
+       full.names = TRUE)){
+      # Do nothing: simulated data was already written to disk
+    }else{
+      write.table(t(x[rowSums(x) > 0, ]),
+                  file = paste0("fakedata/three/", i, ".txt"))
+    }
+
+    rosie = rosalia(x, trace = 0, prior = make_flat_prior(),
+                    hessian = TRUE)
+
+    se = sqrt(diag(solve(rosie$opt$hessian)))["beta3"]
+    rosalia_confident_positive =
+      pnorm(0, mean = rosie$beta[2, 3], sd = se) < .025
+    rosalia_confident_negative =
+      pnorm(0, mean = rosie$beta[2, 3], sd = se) > .975
+
+    c(
+      cor = cor(x)[2, 3] < 0,
+      partial = cor2pcor(cor(x))[2, 3] < 0,
+      rosalia = rosie$beta[2,3] < 0,
+      rosalia_confident_positive = rosalia_confident_positive,
+      rosalia_confident_negative = rosalia_confident_negative
+    )
+  })
+```
+
+\setstretch{2}
+
+After running the "Pairs" software on transposed versions of the files simulated above, we can import its results to see how the method performed.
+
+\setstretch{1}
+
+```r
+Pairs.txt = readLines("fakedata/three/Pairs.txt")
+
+# Find the column that contains the Z-score
+z_score_column = grep("Z-Score", Pairs.txt, value = TRUE)[2] %>%
+  strsplit(" +") %>%
+  extract2(1) %>%
+  grep("Z-Score", .)
+
+# Find the right rows of the text file, split them on whitespace,
+# pull out the column identified above, and save the Z-score
+pairs_z = Pairs.txt[grep("(Var2.*Var1)|(Var1.*Var2)", Pairs.txt)] %>%
+    strsplit(" +") %>%
+    sapply(. %>% extract(z_score_column) %>% as.numeric)
+
+
+# Z>0 implies negative interactions because the Z-score relates
+# to the distribution of C-scores, which describe the frequency
+# with which species *do not* co-occur. It has the opposite
+# sign of metrics based on when species *do* co-occur.
+pairs_evaluation = pairs_z > 0
+```
+
+
+
+```r
+out = c(pairs = mean(pairs_evaluation) * 100,
+        rowMeans(evaluation)[1:3] * 100)
+
+kable(data_frame(model = names(out),
+      percent_correct = paste(out, "%")))
+```
+
+
+
+|model   |percent_correct |
+|:-------|:---------------|
+|pairs   |0 %             |
+|cor     |0 %             |
+|partial |100 %           |
+|rosalia |100 %           |
+
+
+```r
+# percentage of Pairs runs that found statistically
+# significant mutualism at the p<.05 level (two-tailed test)
+mean(pnorm(pairs_z) < 0.025) * 100
+```
+
+```
+## [1] 98.2983
+```
+
+```r
+# percentage of Pairs runs that found statistically
+# significant competition at the p<.05 level (two-tailed test)
+pairs_significant_competition = pnorm(pairs_z) > 0.975
+
+# percentage of rosalia runs whose 95% confidence
+# intervals did not include 0
+rowMeans(evaluation)[c("rosalia_confident_negative",
+                       "rosalia_confident_positive")] * 100
+```
+
+```
+## rosalia_confident_negative rosalia_confident_positive
+##                        100                          0
+```
+\setstretch{2}
+
+\subsection{Simulating species interactions}
+
+This code simulates from a stochastic demographic model, then saves the results
+for subsequent analysis.
+
+\setstretch{1}
+```r
+# Initialize the random number generator for reproducibility
+set.seed(1)
+
+thin = 5E3  # Save every 5000th sample
+n_spp = 20  # 20 species
+n_reps = 50 # 50 replicates for each landscape size
+```
+\setstretch{2}
+
+In the large population limit, the number of individuals of species $i$, $n_i$,
+evolves over time based on the following differential equation, based on
+multi-species Lotka-Volterra dynamics.  The basic multi-species model is
+
+\begin{equation}
+\frac{\mathrm{d}n_i}{\mathrm{d}t} =  
+    r_i n_i (1 - \frac{n_i + \sum{\alpha_{ij}n_j}}{K}),
+\end{equation}
+
+where $r_i$ is the per-capita growth rate of species $i$, $n_i$ is its
+abundance, $\alpha_{ij}$ describes the strength of its competition with
+species $j$, and $K$ is the carrying capacity.  These simulations use a
+more general form, which includes propagules from outside the system ($r_e$)
+and a separate mechanism for mutualisms ($f_i(\vec{n})$).
+
+\begin{equation}
+\frac{\mathrm{d}n_i}{\mathrm{d}t} =  
+   r_e + r_i n_i (1 - \frac{n_i f_i(\vec{n}) + \sum{\alpha_{ij}n_j}}{K}).
+\end{equation}
+
+Setting $r_e=0$ and $f_i(\vec{n}) = 1$ recovers the original Lotka-Volterra
+dynamics. The function $f_i(\vec{n})$ acts to reduce the strength of
+intraspecific competition in the presence of mutualists.  For these simulations,
+I used
+
+\begin{equation}
+f_i(\vec{n}) = \frac{1}{2}(1 + \mathrm{exp}(-\frac{\sum_j{\gamma_{ij} n_j}}{5K}),
+\end{equation}
+
+where $\gamma_{ij}$ is the strength of the mutualism between species $i$ and
+species $j$.  The nonlinearity ensures that mutualisms can never eliminate more
+than half of the effects of intraspecific competition and destabilize the system
+too strongly. In these simulations, each species pair acted either as competitors
+$\alpha_{ij} > 0$ or as mutualists $\gamma_{ij} > 0$, but not both. Note that
+$\alpha_{ii}$ and $\gamma_{ii}$ were always zero (i.e. intraspecific competition
+is modeled outside of the $\alpha$ term and species cannot be their own
+mutualists).
+
+Equation 2 can be decomposed into a birth rate, $r_e + r_i n_i$, and a death
+rate, $r_i n_i (\frac{n_i f_i(\vec{n}) + \sum{\alpha_{ij}n_j}}{K})$.  If we
+treat births and deaths as discrete events (e.g. if we leave the large population
+regime), then the probability that the next event will be a birth (or death) of
+species $i$ is directly proportional to the corresponding demographic rate.
+
+Because these events' probabilities only depend on the  current state of the
+system, they form a Markov chain that explores the  space of possible species
+assemblages under the population dynamic model.  For each set of competition and
+mutualism coefficients, I simulated births and deaths in this chain, collecting
+one sample after every 5000th demographic event.  For the subsequent analysis,
+each species was considered "present" in a  sample if one or more individuals was
+present, and "absent" if its abundance in that sample was zero.
+
+The following function randomly generates a set of $\alpha$ and $\gamma$ values,
+then simulates `maxit` demographic events with those parameters, retaining every
+`thin`=5000 samples.
+
+\setstretch{1}
+
+```r
+simulate_communities = function(n_spp = 20,
+         K = n_spp / 3,
+         maxit = 5E6,
+         thin = 1E4,
+         seed_rain = rep(.1, n_spp),
+         growth = rep(1, n_spp),
+         interaction_strength = 1/2,
+         prob_negative = 0.75,
+         mutualism_maximum = 0.5
+){
+
+  # Intraspecific competition can be mitigated by mutualists, up to some
+  # maximal amount.  This function rescales the mutualism effect so that
+  # it doesn't turn off intraspecific competition entirely.
+  mutualism_scaler = function(x, mutualism_maximum){
+    (1 + exp(- x / 5 / K)) * (1 - mutualism_maximum)
+  }
+
+  # Randomly generate a vector of interaction strengths (one for each
+  # pair of species)
+  interaction_vector = rexp(choose(n_spp, 2), interaction_strength)
+
+  # Randomly mark interactions as positive or negative
+  interaction_signs = ifelse(
+    rbinom(choose(n_spp, 2), size = 1, prob = prob_negative),
+    -1,
+    1
+  )
+
+  # Negative interactions are competition; positive ones are mutualisms
+  competition_vector = interaction_vector * (interaction_signs == -1)
+  mutualism_vector = interaction_vector * (interaction_signs == +1)
+
+  # Fill in the competition and mutualism matrices:
+  # Start with a matrix of zeros
+  competition = matrix(0, nrow = n_spp, ncol = n_spp)
+  # Fill in the upper triangle with the appropriate interaction vector
+  competition[upper.tri(competition)] = competition_vector
+  # Symmetrize the matrix by adding it to its transpose
+  competition = competition + t(competition)
+
+  # Note that intraspecific competition (which would go
+  # along the diagonal) is handled separately, and the
+  # diagonal is left with zeros.
+
+  mutualism = matrix(0, nrow = n_spp, ncol = n_spp)
+  mutualism[upper.tri(mutualism)] = mutualism_vector
+  mutualism = mutualism + t(mutualism)
+
+  # Create an empty matrix for storing population sizes
+  pops = matrix(nrow = n_spp, ncol = maxit / thin)
+
+
+  # Initialize the population with a fixed number of
+  # individuals per species, depending on the number of
+  # species, carrying capacity, and strength of interspecific
+  # competition.
+  population = rep(ceiling(K / n_spp / mean(competition)), n_spp)
+
+
+  for(i in 1:maxit){
+
+    # The local growth rate is proportional to population size
+    local_growth = growth * population
+
+    # Mutualists act by mitigating intraspecific competition
+    mutualist_mitigation = mutualism_scaler(
+      population %*% mutualism,
+      mutualism_maximum
+    )
+
+    # Add up the two types of interactions affecting death rates
+    interactions = population * mutualist_mitigation +
+      population %*% competition
+
+    # Germinating seeds can come from local growth
+    # or from outside the system
+    birthrates = seed_rain + local_growth
+
+    # Death rates depend on population size,
+    # interactions, and carrying capacity
+    deathrates = local_growth * interactions / K
+
+    # Generate a vector of vital rates
+    rates = c(birthrates, deathrates)
+
+    # Randomly select a birth/death event to occur. Probability
+    # of occurring is proportional to the corresponding rate
+    event = sample.int(length(rates), 1, prob = rates)
+
+
+    if(event <= length(birthrates)){
+      # Event from first batch, i.e. birth.  
+      # Increase the population by one
+      index = event
+      population[index] = population[index] + 1
+    }else{
+      # Event from the second batch, i.e. death.
+      # If population is nonzero, decrease it by one
+      # for the corresponding species
+      index = event - n_spp
+      if(population[index] > 0){
+        population[index] = population[index] - 1
+      }
+    }
+
+
+    if(i%%thin == 0){
+      # Save the results in the `pops` matrix
+      pops[ , i %/% thin] = population
+    }
+  }
+
+  # Return the "observed" presence-absence vector
+  # along with the"true" interaction signs and strengths.
+  # The output is transposed because all fitting methods but Pairs
+  # require it in that format.
+  # Multiplying by one turns TRUEs into 1s and FALSEs into 0s
+  list(
+    observed = t(pops > 0) * 1,
+    truth = interaction_vector * interaction_signs
+  )
+}
+```
+
+
+\setstretch{2}
+I called the above code 50 times for each landscape size, saving the
+results in a folder called `fakedata` in two formats (one for Gotelli and
+Ulrich's Pairs software, and one for the other methods).
+
+\setstretch{1}
+
+```r
+for(n_sites in c(25, 200, 1600)){
+  message(n_sites)
+
+  for(rep in 1:n_reps){
+    id = paste(n_spp, n_sites, rep, sep = "-")
+
+    results = simulate_communities(
+      maxit = n_sites * thin,
+      thin = thin,
+      n_spp = n_spp
+    )
+
+    saveRDS(results, file = paste0("fakedata/", id, ".rds"))
+
+    # Gotelli and Ulrich's Pairs software needs a different format.
+    x = results$observed
+
+    # It rejects empty sites, so I remove them here
+    x_subset = x[rowSums(x) != 0, colSums(x) != 0]
+
+    # It also expects the data matrices to be transposed
+    # relative to the other methods
+    write.table(
+      t(x_subset),
+      file = paste0("fakedata/", id, "-transposed.txt"),
+      quote = FALSE
+    )
+  }
+}
+```
+\setstretch{2}
+
+\subsection{Estimating species interactions}
+
+
+This document describes how the different models were fit to the simulated data
+from Appendix 2 and how each model's performance was evaluated.
+
+
+Initialization:
+
+\setstretch{1}
+```r
+library(dplyr)        # For manipulating data structures
+library(corpcor)      # For regularized partial covariances
+library(rosalia)      # For Markov networks
+library(arm)          # For regularized logistic regression
+library(BayesComm)    # For joint species distribution modeling
+library(RColorBrewer) # For color palette
+set.seed(1)
+```
+\setstretch{2}
+
+Load in the results from the `pairs` program, run outside of R with
+the following options:
+
+  * Batch mode
+  * Sequential swap ("s")
+  * Printing all pairs ("y")
+  * C-score co-occurrence measure ("c")
+  * Default confidence limits (0.05)
+  * Default iterations (100)
+  * Maximum of 20 species
+
+\setstretch{1}
+```r
+pairs_txt = readLines("fakedata/Pairs.txt")
+
+# Find areas of the data file that correspond
+# to species pairs' results
+beginnings = grep("Sp1", pairs_txt) + 1
+ends = c(
+  grep("^[^ ]", pairs_txt)[-1],
+  length(pairs_txt)
+) - 1
+
+# The above code fails on the very last line of the file
+ends[length(ends)] = ends[length(ends)] + 1
+```
+
+A function to import the data file and run each method on it:
+
+
+```r
+fit_all = function(filename){
+  ######## Import ########
+
+  # Multiplying by one is necessary to prevent silly errors
+  # regarding TRUE/FALSE versus 1/0
+  raw_obs = readRDS(filename)[["observed"]] * 1
+
+  # Identify species that are never present (or never absent) so they
+  # can be dropped
+  species_is_variable = diag(var(raw_obs)) > 0
+  pair_is_variable = tcrossprod(species_is_variable) > 0
+  variable_pair = pair_is_variable[upper.tri(pair_is_variable)]
+
+  x = raw_obs[ , species_is_variable]
+  truth = readRDS(filename)[["truth"]][variable_pair]
+
+  splitname = strsplit(filename, "/|-|\\.")[[1]]
+  n_sites = as.integer(splitname[[3]])
+  rep = as.integer(splitname[[4]])
+
+
+  ######## Partial correlations ########
+  p_corr = pcor.shrink(x)
+
+  ######## Correlations ########
+  corr = cor(x)
+
+  ######## GLM ########
+  coef_matrix = matrix(0, ncol(x), ncol(x))
+  for(i in 1:ncol(x)){
+    if(var(x[,i]) > 0){
+      coefs = coef(bayesglm(x[,i] ~ x[ , -i], family = binomial))[-1]
+      coef_matrix[i, -i] = coefs
+    }
+  }
+  coef_matrix = (coef_matrix + t(coef_matrix)) / 2
+
+  ######## Markov network ########
+  rosie = rosalia(x, maxit = 200, trace = 0,
+    prior = make_logistic_prior(scale = 2))
+
+  ######## BayesComm and partial BayesComm ########
+  bc = BC(Y = x, model = "community", its = 1000)
+
+  `partial BayesComm` = 0
+
+  for(i in 1:nrow(bc$trace$R)){
+    Sigma = matrix(0, nrow = ncol(x), ncol = ncol(x))
+    Sigma[upper.tri(Sigma)] <- bc$trace$R[i, ]  # Fill in upper triangle
+    Sigma <- Sigma + t(Sigma)                   # Fill in lower triangle
+    diag(Sigma) <- 1  # Diagonal equals 1 in multivariate probit model
+
+    `partial BayesComm` = `partial BayesComm` +
+       cor2pcor(Sigma) / nrow(bc$trace$R)
+  }
+
+  ######## Pairs ########
+  # Find the line where the current data set is mentioned in
+  # pairs.txt
+  filename_line = grep(
+    paste0(
+      gsub("fakedata/(.*)\\.rds", "\\1", filename),
+      "-"
+    ),
+    pairs_txt
+  )
+
+  # Which chunk of the data file corresponds to this file?
+  chunk = min(which(beginnings > filename_line))
+
+  # Split the chunk on whitespace.
+  splitted = strsplit(pairs_txt[beginnings[chunk]:ends[chunk]], " +")
+
+  # Pull out the species numbers and their Z-scores
+  pairs_results = lapply(
+    splitted,
+    function(x){
+      spp = sort(as.integer(x[3:4]))
+      data.frame(
+        sp1 = spp[1],
+        sp2 = spp[2],
+        z = as.numeric(x[14])
+      )
+    }
+  ) %>%
+    bind_rows %>%
+    mutate(spp = paste(sp1, sp2, sep = "-"))
+
+  # Re-order the pairs_results to match the other methods
+  m = matrix(NA, ncol(x), ncol(x))
+  new_order = match(
+    paste(row(m)[upper.tri(m)], col(m)[upper.tri(m)], sep = "-"),
+    pairs_results$spp
+  )
+  ordered_pairs_results = pairs_results[new_order, ]
+
+  ######## Output ########
+  data.frame(
+    truth = truth,
+    n_sites = n_sites,
+    rep = rep,
+    sp1 = ordered_pairs_results$sp1,
+    sp2 = ordered_pairs_results$sp2,
+    `partial correlation` = p_corr[upper.tri(p_corr)],
+    correlation = corr[upper.tri(corr)],
+    `Markov network` = rosie$beta[upper.tri(rosie$beta)],
+    GLM = coef_matrix[upper.tri(coef_matrix)],
+    `BayesComm` = colMeans(bc$trace$R),
+    `partial BayesComm` =
+      `partial BayesComm`[upper.tri(`partial BayesComm`)],
+    Pairs = ordered_pairs_results$z
+  )
+}
+```
+
+Run the above function on all the files:
+
+
+```r
+# Find all the .rds files in the fakedata folder
+files = dir("fakedata", pattern = "\\.rds$", full.names = TRUE)
+
+# Run all the analyses on all the files
+z = lapply(files, fit_all) %>% bind_rows %>% as.data.frame
+
+# Fix a formatting issue with the column names
+colnames(z) = gsub("\\.", " ", colnames(z))
+```
+
+Summarize the results of all 7 methods across the simulated landscapes:
+
+
+```r
+# Calculate residuals for each method
+resids = sapply(
+  colnames(z)[-(1:5)],
+  function(i){resid(lm(z$truth ~ z[,i] + 0))}
+)
+
+sizes = sort(unique(z$n_sites))
+
+# Compute proportion of variance explained, compared with a null that
+# assumes all species interactions are 0.
+results = as.data.frame(
+  t(
+    sapply(
+      sizes,
+      function(n){
+        total_ss = mean(resid(lm(truth ~ 0, data = z))[z$n_sites == n]^2)
+        1 - colMeans(resids[z$n_sites == n , ]^2) / total_ss
+      }
+    )
+  )
+)
+# Sort the results in decreasing order
+results = results[order(colMeans(results), decreasing = TRUE)]
+```
+
+Plot the results:
+
+
+```r
+colors = brewer.pal(8, "Dark2")[c(1, 2, 3, 4, 8, 5, 7)]
+
+# Set up the plotting canvas
+pdf("figures/2/performance.pdf", height = 8, width = 5)
+par(mfrow = c(2, 1))
+par(mar = c(5, 4, 3, 0) + .1)
+
+# Plot the model performance
+matplot(
+  sizes,
+  results,
+  type = "o",
+  ylab = "",
+  xlim = c(25 * .9, 1600 * 8),
+  ylim = c(0, .5 + 1E-9),
+  pch = c(15, 1, 17, 0, 16, 2, 3),
+  lty = 1,
+  log = "x",
+  xlab = "",
+  axes = FALSE,
+  xaxs = "i",
+  yaxs = "i",
+  col = colors,
+  lwd = 1.25,
+  cex = 0.9,
+  bty = "l"
+)
+axis(1, c(1, 25, 200, 1600))
+axis(2, seq(0, 1, .1), las = 1)
+
+mtext(expression(R^2), side = 2, line = 3, las = 1)
+mtext("Number of sites (log scale)", side = 1, line = 2.25, at = 200)
+mtext("A.", line = 1.25, at = 25, cex = 1.5)
+
+# Determine how high on the y-axis each method label should be so they
+# don't overlap.
+heights = results[nrow(results), ]
+
+heights$Pairs = heights$Pairs - .01
+heights$correlation = heights$correlation + .01
+
+heights$`partial correlation` = heights$`partial correlation` + .01
+heights$`partial BayesComm` = heights$`partial BayesComm` - .01
+
+heights$GLM = heights$GLM - .01
+
+text(1625, heights, colnames(results), pos = 4, cex = 0.75, col = colors)
+
+######
+
+# silly code to make the next graph line up prettily with
+# the previous one
+full_range = log10(c(25 * .9, 1600 * 8))
+base_range = log10(c(25, 1600))
+
+base_scaled = 2 * base_range / (base_range[2] - base_range[1])
+full_scaled = 2 * full_range / (base_range[2] - base_range[1])
+
+# New colors for plot B
+colors2 = brewer.pal(10, "Paired")[c(2, 4, 10)]
+plot(
+  z$correlation,
+  z$Pairs,
+  col = colors2[factor(z$n_sites)],
+  las = 1,
+  xlab = "",
+  ylab = expression(italic(Z)-score),
+  bty = "l",
+  xaxs = "i",
+  axes = FALSE,
+  xlim = full_scaled - base_scaled[2] + 1
+)
+axis(1, seq(-2, 1, .5))
+axis(2, seq(-50, 50, 10), las = 1)
+mtext("Correlation coefficient", side = 1, line = 2.25, at = 0)
+mtext("B.", line = 1.25, at = -1, cex = 1.5)
+
+legend(
+  x = 1.05,
+  y = max(z$Pairs),
+  pch = 1,
+  lty = 0,
+  lwd = 2,
+  col = colors2[1:length(unique(z$n_sites))],
+  legend = levels(factor(z$n_sites)),
+  title = "Number of sites",
+  bty = "n",
+  cex = 0.75,
+  pt.cex = 1
+)
+segments(-1000, 0, 1.04, 0, col = "#00000025", lwd = 1.25)
+segments(0, -1000, 0, 1000, col = "#00000025", lwd = 1.25)
+
+
+dev.off()
+```
+
+Summarize the results:
+
+
+```r
+# R-squareds computed across *all* landscape types
+total_ss = mean(resid(lm(truth ~ 0, data = z))^2)
+round(100 * sort(1 - colMeans(resids^2) / total_ss), 1)
+
+
+# Rank correlations among the methods that estimate marginal
+# relationships
+round(cor(z[ , c(7, 10, 12)], method = "spearman")[,1], 2)
+```
+
+Plot the true interactions versus estimated interactions for two methods:
+
+
+```r
+library(ggplot2)
+
+ggplot(z[z$n_sites >0, ], aes(x = `Markov network`, y = truth)) +
+  stat_binhex(bins = 100) +
+  xlab("Estimated coefficient value") +
+  ylab("\"True\" coefficient value") +
+  stat_hline(yintercept = 0, size = 1/8) +
+  stat_vline(xintercept = 0, size = 1/8) +
+  scale_fill_gradient(
+    low = "#F0F0F0",
+    high = "darkblue",
+    trans = "identity"
+  ) +
+  theme_bw() +
+  ggtitle("Markov network") +
+  stat_abline(
+    intercept = 0,
+    slope = coef(lm(z$truth ~ z$`Markov network` + 0))
+  )
+
+z$`-Pairs` = -z$Pairs
+ggplot(z[z$n_sites >0, ], aes(x = `-Pairs`, y = truth)) +
+  stat_binhex(bins = 100) +
+  xlab("Estimated coefficient value") +
+  ylab("\"True\" coefficient value") +
+  stat_hline(yintercept = 0, size = 1/8) +
+  stat_vline(xintercept = 0, size = 1/8) +
+  scale_fill_gradient(
+    low = "#F0F0F0",
+    high = "darkblue",
+    trans = "identity"
+  ) +
+  theme_bw() +
+  ggtitle("Null model (\"Pairs\")") +
+  stat_abline(
+    intercept = 0,
+    slope = coef(lm(z$truth ~ z$`-Pairs` + 0))
+  )
+```
+
+\setstretch{2}
+
+Bootstrap resample from each of the three landscape size classes, generating
+new sets of 150 landscapes. For each one, calculate the proportion of variance
+explained (compared to a null baseline that assumes all species pairs'
+interaction strengths are zero).
+
+\setstretch{1}
+
+```r
+rep = 12
+n = 200
+boots = replicate(500,
+          {
+            boot = lapply(
+              sizes,
+              function(n){lapply(
+                sample.int(max(z$rep), replace = TRUE),
+                function(rep){
+                  z[z$rep == rep & z$n_sites == n, ]
+                }
+              ) %>% bind_rows}
+            ) %>% bind_rows
+
+            resids = sapply(
+              colnames(boot)[-(1:5)],
+              function(i){resid(lm(boot$truth ~ boot[[i]] + 0))}
+            )
+            total_ss = mean(resid(lm(truth ~ 0, data = boot))^2)
+            1 - colMeans(resids^2) / total_ss
+          }
+)
+```
+
+Summarize the bootstrap results:
+
+
+```r
+for(compared in
+    c("partial correlation", "correlation", "GLM",
+      "BayesComm", "partial BayesComm", "Pairs")
+){
+  CI = round(
+    quantile(
+      boots["Markov network", ] / boots[compared, ],
+      c(.025, .975)),
+    2
+  )
+
+  message("R-squared is " , CI[1], "-", CI[2],
+          " times higher than from ", compared,
+          " (95% bootstrap CI)")
+}
+```
+
+
+```r
+save(results, sizes, file = "graph_data.Rdata")
+```
+
+
+
+
+
+
+
+
+\subsection{Bootstrap}
+
+```r
+library(rosalia)
+
+set.seed(1)
+
+n_boot = 50
+
+# Load a simulated data set with 20 species at 200 sites.
+# Multiply by one to avoid problems with FALSE/TRUE vs 0/1
+d = readRDS("fakedata/20-200-1.rds")$observed * 1
+
+# Fit a Markov network to the full data set
+full_fit = rosalia(d, prior = make_logistic_prior(scale = 2),
+                   hessian = TRUE, maxit = 200)
+
+
+# Repeat the analysis on each bootstrap replicate
+boots = replicate(
+  n_boot,
+  {
+    boot_sample = d[sample.int(nrow(d), replace = TRUE), ]
+
+    # Initializing the optimization at full_fit$opt$par should save
+    # time and shouldn't change the final outcome because the prior
+    # and likelihood are both convex
+    boot_fit = rosalia(
+      boot_sample,
+      prior = make_logistic_prior(scale = 2),
+      parlist = relist(full_fit$opt$par),
+      trace = 0
+    )
+
+    # Output the upper triangle of the fitted model
+    boot_fit$beta[upper.tri(boot_fit$beta)]
+  }
+)
+
+# Correlations among the bootstrapped estimates
+# (upper triangle avoids the diagonal, which is always 1)
+boot_cors = cor(boots)[upper.tri(cor(boots))]
+
+# Mean squared correlation among replicates = 0.494
+mean(boot_cors^2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+
+
+
 
 \section{Appendices to Chapter 3}
 
@@ -1418,7 +2348,7 @@ dev.off()
 
 \newpage
 
-\setstretch{1.1}
+\setstretch{1.2}
 \setlength{\parskip}{12pt}
 \setlength{\parindent}{0em}
 \setlength{\leftskip}{0em}
