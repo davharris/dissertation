@@ -1,5 +1,7 @@
 ---
 numbersections: true
+header-includes:
+    - \usepackage{appendix}
 ---
 \numberwithin{figure}{section}
 \pagenumbering{roman}
@@ -35,6 +37,8 @@ of the
 UNIVERSITY OF CALIFORNIA
 
 DAVIS
+
+\vspace{18 pt}
 
 Approved:
 
@@ -86,7 +90,11 @@ asdf
 \pagenumbering{arabic}
 \setcounter{page}{1}
 
+\setstretch{1}
+
 # Generating realistic assemblages with a Joint Species Distribution Model
+
+\setstretch{2}
 
 David J. Harris
 
@@ -228,7 +236,7 @@ I trained one BRT model for each species using the `gbm` package [@ridgeway_gbm_
 I also used a deterministic neural network from the `nnet` package [@venables_modern_2002] as a baseline to assess the importance of mistnet's latent random variables.
 This network shares some information among species (i.e. all species' occurrence probabilities depend on the same hidden layer), but like most other multi-species SDMs [@ferrier_using_2007; @leathwick_using_2005] it is not a JSDM and does not explicitly model co-occurrence [@clark_more_2013].
 
-Finally, I trained a linear JSDM using the BayesComm package [@golding_phd_2013; @golding_bayescomm_2014] to assess the importance of mistnet's nonlinearities compared to a linear alternative that also models co-occurrence explicitly.
+Finally, I trained a linear JSDM using the BayesComm package [@golding_phd_2013; @golding_bayescomm_2015] to assess the importance of mistnet's nonlinearities compared to a linear alternative that also models co-occurrence explicitly.
 
 ### Evaluating model predictions along test routes
 
@@ -373,8 +381,11 @@ I gratefully acknowledge the field biologists that collected the BBS data, as we
 
 
 
+\setstretch{1}
 
 # Estimating species interactions from observational data with Markov networks
+
+\setstretch{2}
 
 David J. Harris
 
@@ -793,8 +804,13 @@ very helpful feedback on the text.
 
 
 
+\setstretch{1}
 
 # Estimating species interactions in large, abiotically structured communities with Markov networks and stochastic approximation
+
+\setstretch{2}
+
+David J. Harris
 
 ## Introduction
 
@@ -838,11 +854,11 @@ A Markov network describes a probability distribution over possible assemblages.
 
 In order to reduce the discrepancy between the observed and predicted sufficient statistics, the `rosalia` calculates each value exactly, averaging over all possible presence-absence combinations. Stochastic approximation [@robbins_stochastic_1951; @salakhutdinov_efficient_2012] instead estimates the expected values of the sufficient statistics by averaging over a more manageable number of simulated assemblages during each model-fitting iteration, while still retaining maximum likelihood convergence guarantees.  The procedure iterates through the following three steps as many times as needed (50,000 for these analyses; see Appendix for annotated R code):
 
-1: simulate a set of assemblages from the current model parameters and calculate sufficient statistics for the sample.
+1. Simulate a set of assemblages from the current model parameters and calculate sufficient statistics for the sample.
 
-2: subtract the simulated sufficient statistics from the observed ones to calculate the approximate likelihood gradient
+2. Subtract the simulated sufficient statistics from the observed ones to calculate the approximate likelihood gradient
 
-3: Adjust the model parameters to climb the approximate gradient, using a schedule of step sizes that satisfies the criteria in Chapter 6 of @powell_approximate_2007.
+3. Adjust the model parameters to climb the approximate gradient, using a schedule of step sizes that satisfies the criteria in Chapter 6 of @powell_approximate_2007.
 
 Here, the simulations in Step 1 used Gibbs sampling to generate examples of landscapes based on the model’s current parameter estimates. While the simulated landscapes produced by Gibbs sampling are serially autocorrelated, statisticians have shown that this merely slows convergence to the maximum likelihood estimate rather than preventing it altogether [@younes_convergence_1999; @salakhutdinov_efficient_2012].
 
@@ -882,6 +898,525 @@ These richer sources of information will be especially important for cases where
 
 Even without better data, ecologists have a number of options for expanding beyond simple Markov networks in a number of ways that would improve their ability to address a wider range of questions.  This paper demonstrated that it is possible to simultaneously estimate species’ responses to the abiotic and environment and to one another, but many other extensions are possible. For example, ecologists could condition the model on variables whose values have not been measured (e.g. partially-observed Markov networks, or the approximate networks in the `mistnet` package; cf. @pollock_understanding_2014). This would allow ecologists to account for measurement error and for other ecologically-important factors that can be difficult to measure. Ecologists should also explore higher-order networks, where one species’ presence can affect the relationship between two other species [@whittam_species_1981; @tjelmeland_markov_1998].
 
+\newpage
+
+\appendix
+
+\section{Appendices to Chapter 1}
+
+\subsection{Data}
+
+Code for this section can be found in
+`mistnet/extras/BBS-analysis/data_extraction/data-extraction.R` in the version control repository at https://github.com/davharris/mistnet/.
+
+\subsubsection{Partitioning training and test data}
+
+A set of evenly-spaced coordinates were selected across the Earth's surface using `regularCoordinates(12)` in the `geosphere` R package [@hijmans_geosphere_2012]. The 1559 routes that were more than 300 km from all of these coordinates were included in the training set, while the 280 routes that were less than 150 km away from one of them were included in the test set.
+
+\subsubsection{Criteria for including a species in the data set}
+
+Hybrids and other ambiguous taxa were identified using simple heuristics (e.g. if the listed common or Latin name included the word "or").
+Such species were excluded from the analysis; code for the heuristics used is available on the mistnet package's version control repository (`mistnet/extras/BBS-analysis/data_extraction/species-handling.R`).
+I also omitted any species that were observed along fewer than 10 training routes to ensure that enough data points were available for cross-validation. This left a pool of 368 species for analysis.
+
+\subsubsection{Included climate predictors}
+
+The following eight climate predictors were selected out of the 19 Bioclim variables in the Worldclim data set, omitting nearly-collinear variables identified with the `findCorrelation` function in the `caret` package [@kuhn_caret_2012]:
+
+>bio2: Mean Diurnal Range
+>bio3: Isothermality
+>bio5: Max Temperature of Warmest Month
+>bio8: Mean Temperature of Wettest Quarter
+>bio9: Mean Temperature of Driest Quarter
+>bio15: Precipitation Seasonality
+>bio16: Precipitation of Wettest Quarter
+>bio18: Precipitation of Warmest Quarter
+
+
+\subsection{Neural network structure}
+A feed-forward neural network, such as a mistnet model, performs a series of simple mathematical operations in nodes, called neurons, which are organized into layers.
+Each neuron receives a vector of inputs from the previous layer, and ultimately from the environmental variables (both measured and simulated).
+The neuron's response to each input variable is governed by a coefficient ("weight"), such that the neuron's total activation equals the dot product of the input vector with its weight vector, plus an intercept term called a bias.
+The neuron may optionally perform a nonlinear operation on this activation level before passing it on as input to the following layer.
+
+In the network presented here:
+
+* The neurons in the first hidden layer perform output a piecewise linear function of their inputs, $f(x) = \mathrm{max}(0, x)$ [@zeiler_rectified_2013].
+* The neurons in the second hidden layer simply return their own inputs: $f(x) = x$. This layer functions solely to reduce the dimensionality of the network, as described in the main text.
+* The output layer predicts occurrence probabilities for each species, with each species' neuron transforming its inputs to a probability between 0 and 1 with a logistic ("sigmoid") nonlinearity, $f(x) = e^x/(1+e^x)$.
+
+In a stochastic neural network [@neal_connectionist_1992; @tang_learning_2013] such as mistnet, neurons can respond both to observed and simulated inputs.
+The simulated inputs represent samples from a probability distribution over possible unobserved environmental variables.
+Depending on the values taken by these unobserved (latent) variables, different values will be passed forward through the network and different probability distributions will be produced over possible species assemblages.
+This enables the network to represent the possibility that two locations with similar environmental data will have systematically different species composition, owing to unmeasured variation.
+By default, the latent variables are simulated from standard normal distributions.
+
+\subsection{Model fitting}
+
+If the neurons' nonlinear activation functions are differentiable almost everywhere, then one can use the chain rule from calculus to find the gradient of the model's log-likelihood with respect to every coefficient.
+The associated algorithm, called backpropagation, allows for local optimization by climbing this gradient [@murphy_machine_2012].
+
+Mistnet models' predictions, and thus their error gradients, depend on unobserved environmental variation, which means that they cannot be calculated exactly without solving difficult integrals.
+However, one can collect Monte Carlo samples of possible error gradients, since we have prior distributions over these unobserved variables (by default, these prior distributions are all standard Gaussians).
+Given the observed assemblage, one can therefore use an importance sampler to average over possible likelihood gradients, yielding an estimated gradient [@tang_learning_2013].
+The mistnet code then adjusts the model parameters in the direction of this estimate.
+
+@tang_learning_2013 show that this procedure is an example of generalized expectation maximization [@neal_view_1998], which means that it will increase a lower bound on the model's log-likelihood until that bound coincides with a local maximimum.
+
+\subsection{Model configuration}
+
+\subsubsection{BRT}
+
+All these analyses used the `gbm` package.
+For each species, I evaluated BRT models with `interaction.depth` of 2, 5, and 8, and with up to 10,000 trees, using the default learning rate of 0.001.
+The number and depth of the trees was chosen by separate 5-fold cross-validations for each species [@murphy_machine_2012].  See `mistnet/extras/BBS-analysis/BBS_evaluation/gbm.R`.
+
+\subsubsection{Deterministic neural net}
+
+`nnet`'s hyperparameters were optimized using random search [@bergstra_random_2012].
+During this search, the number of hidden units was sampled uniformly between 1 and 50 and the weight decay was sampled from an exponential distribution with rate parameter 1.
+The model was allowed 1,000 BFGS iterations to optimize the log-likelihood in each configuration.
+The model was fit with 8 different configurations of hidden layer sizes and weight decay values, and the best configuration was selected by five-fold cross-validation.
+See `mistnet/extras/BBS-analysis/BBS_evaluation/nnet-evaluation.R`.
+
+\subsubsection{BayesComm}
+
+I used a development version of BayesComm.  This version can be downloaded and installed using the `devtools` package using the following command:
+`install_github("goldingn/BayesComm", ref = "0d710cda46a6e7427a560ee5b816c8ef5cd03eeb")`.
+
+I used the "full" model type, which models species' responses to both observed and latent environmental factors.
+BayesComm performed 42,000 rounds of Gibbs sampling, discarding the first 2,000 values as "burn-in" and retaining every 80th sample thereafter.
+This left 500 samples, which was a small enough number to fit in 8 gigabytes of memory with some room to spare for additional computations.  See `mistnet/extras/BBS-analysis/BBS_evaluation/bayescomm.R`
+
+\subsubsection{mistnet}
+
+Worldclim variables were standardized to have zero mean and unit variance. The coefficients in each layer were initialized as random samples from a zero-mean Gaussian with a variance of 0.01.
+Bias (intercept) terms in the first layer were manually initialized at 1; bias terms in the second layer were left initialized at 0; bias terms in the final layer were automatically initialized as $\mathrm{log}(\frac{p}{1-p})$, where $p$ is the proportion of routes where the corresponding species was observed.
+The variances of the Gaussian priors for the model's coefficients were adjusted in an empirical-Bayesian fashion every 10 iterations, using each prior's `update` method, with a minimum variance of 0.001.
+The means of the third layer's priors were also adjusted every 10 iterations, using the same function.
+
+I tried 10 different hyperparameter configurations, chosen using random search [@bergstra_random_2012].
+During this search, I varied the following hyperparameters:
+
+* the number of routes to include in each round of gradient descent ("n.minibatch"), was sampled log-uniformly between 10 and 100. This range is commonly suggested in the neural network literature.
+* the number of latent Gaussian variables ("sampler.size") was sampled log-uniformly between 5 and 20. This range was chosen based on my expectations about the likely number of uncorrelated environmental factors that would account for most of the variation in species composition.
+* the number of importance samples to collect during each stage of gradient descent ("n.importance.samples") was sampled log-uniformly between 20 and 50, based on @tang_learning_2013's suggestion of a range between 20 and 30, combined with some previous experience suggesting that larger values might work better than smaller ones.
+* The number of nodes to include in the first hidden layer ("n.layer1") was sampled uniformly between 20 and 50, based on previous experience with neural network models fit to this data set.
+* The number of nodes to include in the second hidden layer ("n.layer2") was sampled uniformly between 5 and 20, based on my expectations about the dimensionality of species' environmental responses.
+* Coefficient updates were performed using adagrad [@duchi_adaptive_2011] and a learning rate of 0.1.  Adagrad was chosen because of its relative insensitivity to hyperparameter values. The learning rate was chosen because it was the largest power of ten that did not introduce numerical problems.
+
+These ranges will likely make for good starting points for many JSDM applications, with smaller values for the layer sizes and learning rates being more likely to perform well on smaller data sets.  See also the `hyperparameters` vignette in the mistnet package, e.g. via `browseVignettes("mistnet")`.
+
+For each hyperparameter configuration, I performed five-fold cross-validation, with 20 minutes allocated per fold for training.
+Cross-validation results are reported below, sorted by average route-level log-likelihood.
+The highest-performing set of hyperparameters (top row) was used to build the model used in the final analyses.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrrr}
+  \hline
+ & n.minibatch & sampler.size & n.importance.samples & n.layer1 & n.layer2 & log.likelihood \\
+  \hline
+1 &  79 &  10 &  28 &  37 &  15 & -52.20 \\
+  2 &  23 &   6 &  24 &  35 &  12 & -52.26 \\
+  3 &  15 &  15 &  25 &  43 &  10 & -52.35 \\
+  4 &  11 &  15 &  27 &  29 &  13 & -52.37 \\
+  5 &  37 &  13 &  36 &  31 &  15 & -52.40 \\
+  6 &  42 &   8 &  45 &  39 &  14 & -52.57 \\
+  7 &  81 &   8 &  22 &  23 &  11 & -52.66 \\
+  8 &  18 &   6 &  47 &  31 &  16 & -53.05 \\
+  9 &  46 &  20 &  28 &  22 &   9 & -53.05 \\
+  10 &  88 &  14 &  20 &  42 &   5 & -55.29 \\
+   \hline
+\end{tabular}
+\end{table}
+
+See `mistnet/extras/BBS-analysis/BBS_evaluation/mistnet_cross-validation.R` for the code used in hyperparameter selection.
+
+\subsection{Variance decomposition}
+The variance decomposition at the beginning of the Results section was performed as follows.
+For each species, I found the total variance in model predictions across both routes and Monte Carlo samples, as well as the residual variance within routes (i.e. after climate was accounted for).
+The proportion of non-climate variance for that species was calculated as residual variance divided by total variance.
+
+\section{Appendices to Chapter 3}
+
+\setstretch{1}
+
+\subsection{Simulation and evaluation for the large landscape}
+
+```r
+library(rosalia)
+library(mistnet)
+
+# convenience function for adding intercepts to each column
+`%plus%` = mistnet:::`%plus%`
+logistic = binomial()$linkinv # logistic inverse link
+
+# Random bernoulli trial
+rbern = function(p){rbinom(length(p), size = 1, prob = p)}
+```
+
+
+
+```r
+set.seed(1)
+n_spp = 250     # number of species
+n_loc = 2500    # number of locations
+n_env = 5       # number of environmental predictors
+n_gibbs = 5000  # number of Gibbs sampling iterations
+
+
+# What portion of the coefficients should come from each
+# mixture component?
+type_frequencies = rmultinom(1, size = choose(n_spp, 2),
+                             prob = c(.2, .5, .3))
+
+
+# Vector of "true" interaction strengths.
+# Three mixture components, shuffled by `sample`.
+true_beta_vec = sample(
+  c(
+    rnorm(type_frequencies[[1]], 0, 2),
+    rnorm(type_frequencies[[2]], 0, .2),
+    rnorm(type_frequencies[[3]], -.5, .5)
+  )
+)
+
+# Visualize the distribution of interaction terms
+plot(density(true_beta_vec))
+
+# Make a symmetric matrix of "true" beta coefficients
+true_beta = matrix(0, nrow = n_spp, ncol = n_spp)
+true_beta[upper.tri(true_beta)] = true_beta_vec
+true_beta = true_beta + t(true_beta)
+
+# Create a set of environmental predictors
+true_env = matrix(rnorm(n_loc * n_env, 0, 2.5), nrow = n_loc)
+
+# "true" responses of each species to each environmental variable
+true_alpha_env = matrix(rnorm(n_spp * n_env, 0, 1), nrow = n_env)
+
+# "true" intercepts for each species
+true_alpha_species = rnorm(n_spp, 2)
+
+# site-level intercept depends on species baselines
+# environmental responses
+true_alpha = true_env %*% true_alpha_env %plus% true_alpha_species
+```
+
+
+```r
+# Initialize the `y` matrix.
+# This will hold the "observed" presence-absence data
+y = matrix(0.5, nrow = n_loc, ncol = n_spp)
+
+# For each round of Gibbs sampling...
+for(i in 1:n_gibbs){
+  # For each species (in random order)...
+  for(j in sample.int(n_spp)){
+    # update its occurrence with samples from the
+    # conditional distribution
+    y[,j] = rbern(logistic(true_alpha[ , j] + y %*% true_beta[ , j]))
+  }
+}
+```
+
+
+```r
+# Calculate sufficient statistics of the data
+y_stats = crossprod(y)
+y_env_stats = t(true_env) %*% y
+```
+
+
+
+```r
+# Initialize the simulated landscape for stochastic approximation
+y_sim = matrix(0.5, nrow = nrow(y), ncol = ncol(y))
+
+# In this example, the true state of the environment is
+# known without error
+env = true_env
+
+# Initialize species' responses to environment at 0.
+# Also initialize the delta (change in parameter values from the
+# previous optimization iteration) to zero, since no optimization
+# has occurred yet
+alpha_env = delta_alpha_env = matrix(0, nrow = n_env, ncol = n_spp)
+
+# Initialize species' intercepts to match observed occurrence rates
+# plus a small amount of regularization
+alpha_species = qlogis((colSums(y) + 1) / (nrow(y) + 2))
+
+# Initialize the deltas for the intercepts to zero
+delta_alpha_species = rep(0, n_spp)
+
+# Initialize pairwise interactions and deltas to zero
+beta = delta_beta = matrix(0, nrow = n_spp, ncol = n_spp)
+
+# overall alpha depends on alpha_species and alpha_env.
+# Will be filled in later, so can initialize it with zeros
+# no delta alpha to initialize b/c alpha not optimized directly
+alpha = matrix(0, nrow = n_spp, ncol = n_spp)
+```
+
+
+```r
+# Very weak priors on alpha terms, somewhat stronger on beta terms
+alpha_env_prior = rosalia::make_logistic_prior(scale = 2)$log_grad
+alpha_species_prior = rosalia::make_logistic_prior(scale = 2)$log_grad
+beta_prior = rosalia::make_logistic_prior(scale = 0.5)$log_grad
+```
+
+
+
+```r
+initial_learning_rate = 1 # step size at start of optimization
+maxit = 50000             # Number of rounds of optimization
+start_time = as.integer(Sys.time())
+
+
+# Record the R-squared values in this vector
+r2s = numeric(maxit)
+
+# Record the timing history in this vector
+times = integer(maxit)
+
+for(i in 1:maxit){
+  ##############################
+  # Gibbs sampling for predicted species composition
+  ##############################
+
+  # Update alpha
+  alpha = env %*% alpha_env %plus% alpha_species
+
+  # Sample entries in y_sim from their conditional
+  # distribution (Gibbs sampling)
+  for(j in sample.int(n_spp)){
+    y_sim[,j] = rbern(logistic(alpha[ , j] + y_sim %*% beta[ , j]))
+  }
+
+  ##############################
+  # Stochastic approximation for updating alpha and beta
+  ##############################
+
+  # Update learning rate and momentum
+  learning_rate = initial_learning_rate * 1000 / (998 + 1 + i)
+  momentum = .9 * (1 - 1/(.1 * i + 2))
+
+  # Calculate sufficient statistics
+  y_sim_stats = crossprod(y_sim)
+  y_sim_env_stats = t(env) %*% y_sim
+
+  # Calculate the gradient with respect to alpha and beta.
+  # Gradients are differences in sufficient statistics plus prior
+  # gradients, all divided by the number of locations
+  stats_difference = y_stats - y_sim_stats
+  beta_grad = (stats_difference + beta_prior(beta)) / n_loc
+
+  alpha_species_grad = (
+    diag(stats_difference) +
+      alpha_species_prior(alpha_species)
+  ) / n_loc
+  diag(beta_grad) = 0 # beta_ii is 0 by convention
+  y_env_difference = y_env_stats - y_sim_env_stats
+  alpha_env_grad = (y_env_difference +
+                      alpha_env_prior(alpha_env))  / n_loc
+
+
+  # Calculate parameter updates: gradient times learning rate
+  # plus momentum times delta
+  delta_beta = beta_grad * learning_rate + momentum * delta_beta
+  delta_alpha_species = alpha_species_grad * learning_rate +
+    momentum  * delta_alpha_species
+  delta_alpha_env = alpha_env_grad * learning_rate +
+    momentum  * delta_alpha_env
+
+  # Add the deltas to the previous parameter values
+  beta = beta + delta_beta
+  alpha_species = alpha_species + delta_alpha_species
+  alpha_env = alpha_env + delta_alpha_env
+
+  # Record R-squared and timing
+  r2s[i] = cor(
+    true_beta[upper.tri(true_beta)],
+    beta[upper.tri(beta)]
+  )^2
+  times[i] = as.integer(Sys.time()) - start_time
+}
+```
+
+
+```r
+library(cowplot)
+library(ggplot2)
+out = plot_grid(
+  ggplot(NULL, aes(x = beta[upper.tri(beta)],
+                   y = true_beta[upper.tri(beta)])) +
+    stat_binhex() +
+    xlab("Estimated coefficient value") +
+    ylab("\"True\" coefficient value") +
+    stat_hline(yintercept = 0, size = 1/8) +
+    stat_vline(xintercept = 0, size = 1/8) +
+    scale_fill_gradient(low = "#F0F0F0", high = "darkblue",
+                        trans = "log10") +
+    stat_abline(intercept = 0, slope = 1, size = 1/2) +
+    coord_equal(),  
+  ggplot(NULL, aes(x = c(alpha_env), y = c(true_alpha_env))) +
+    stat_binhex() +
+    xlab("Estimated coefficient value") +
+    ylab("\"True\" coefficient value") +
+    stat_hline(yintercept = 0, size = 1/8) +
+    stat_vline(xintercept = 0, size = 1/8) +
+    scale_fill_gradient(low = "#F0F0F0", high = "darkblue",
+                        trans = "log10") +
+    stat_abline(intercept = 0, slope = 1, size = 1/2) +
+    coord_equal(),  
+  nrow = 1,
+  labels = c(
+    "A. Pairwise biotic coefficients (n = 31125)",
+    "B. Abiotic coefficients (n = 1250)"
+  )
+)
+save_plot(
+  "stochastic/estimates.pdf",
+  out,
+  base_aspect_ratio = 2,
+  base_height = 6
+)
+```
+
+\subsection{Small landscape}
+
+
+```r
+small_n_spp = 20
+small_n_loc = 500
+small_true_beta = true_beta[1:small_n_spp, 1:small_n_spp]
+small_true_alpha = true_alpha_species - 2
+small_y = matrix(0.5, nrow = small_n_loc, ncol = small_n_spp)
+
+for(i in 1:n_gibbs){
+  for(j in sample.int(small_n_spp)){
+    small_y[,j] = rbern(logistic(small_true_alpha[j] +
+                                   small_y %*% small_true_beta[ , j]))
+  }
+}
+```
+
+
+```r
+exact_time = system.time({
+  exact = rosalia(small_y,
+                  prior = make_logistic_prior(scale = 1), maxit = 500)
+})
+
+mle_beta = exact$beta
+```
+
+
+
+```r
+maxit_small = 50000
+start_time_small = as.numeric(Sys.time())
+
+beta_prior_small = rosalia::make_logistic_prior(scale = 1)$log_grad
+alpha_species_prior_small =
+  rosalia::make_logistic_prior(scale = 1)$log_grad
+
+alpha_small = qlogis((colSums(small_y) + 1) / (nrow(small_y) + 2))
+delta_alpha_small = rep(0, small_n_spp)
+beta_small = delta_beta_small =
+  matrix(0, nrow = small_n_spp, ncol = small_n_spp)
+
+y_sim_small = matrix(0.5, nrow = small_n_loc, ncol = small_n_spp)
+
+y_stats = crossprod(small_y)
+
+mses = numeric(maxit_small)
+small_times = numeric(maxit_small)
+
+for(i in 1:maxit_small){
+  ##############################
+  # Gibbs sampling for predicted species composition
+  ##############################
+
+  # Sample entries in y_sim from their conditional distribution
+  # (Gibbs sampling)
+  for(j in sample.int(small_n_spp)){
+    y_sim_small[,j] = rbern(
+      logistic(alpha_small[j] +
+                 y_sim_small %*% beta_small[ , j])
+    )
+  }
+
+  ##############################
+  # Stochastic approximation for updating alpha and beta
+  ##############################
+
+  # Update learning rate and momentum
+  learning_rate = initial_learning_rate * 1000 / (998 + 1 + i)
+  momentum = .9 * (1 - 1/(.1 * i + 2))
+
+  # Calculate sufficient statistics
+  y_sim_stats = crossprod(y_sim_small)
+
+  # Calculate the gradient with respect to alpha and beta
+  stats_difference = y_stats - y_sim_stats
+  beta_grad = (
+    stats_difference + beta_prior_small(beta_small)
+  ) / small_n_loc
+
+  alpha_species_grad = (
+    diag(stats_difference) +
+      alpha_species_prior_small(alpha_small)
+  ) / small_n_loc
+  diag(beta_grad) = 0
+
+  # Calculate parameter updates
+  delta_beta = beta_grad * learning_rate +
+    momentum * delta_beta_small
+  delta_alpha_species = alpha_species_grad * learning_rate +
+    momentum  * delta_alpha_small
+
+  beta_small = beta_small + delta_beta
+  alpha_small = alpha_small + delta_alpha_species
+
+  mses[i] = mean((beta_small[upper.tri(beta_small)] -
+                    exact$beta[upper.tri(exact$beta)])^2)
+  small_times[i] = as.numeric(Sys.time()) - start_time_small
+}
+```
+
+\subsection{Plotting results}
+
+
+```r
+pdf("stochastic/convergence.pdf", width = 10, height = 7)
+par(mfrow = c(1, 2), las = 1)
+
+plot(small_times, mses, type = "l",
+     ylab = "mean square deviation from MLE\n(log scale)",
+     xlab = "time (seconds)",
+     main = "A. Convergence to known MLE\n(small network)",
+     yaxs = "i", bty = "l", log = "y", xaxs = "i", lwd = 2,
+     col = "blueviolet", xlim = range(c(-.1, small_times)))
+
+plot(c(0, times / 60 / 60), c(0, r2s), type = "l",
+     xlab = "time (hours)", ylab = "R^2",
+     ylim = c(0, max(r2s) * 1.04),
+     main = "B. Apparent convergence to unknown MLE\n(large network)",
+     yaxs = "i", xaxs = "i", lwd = 2,
+     xlim = range(c(-.05, times / 60 / 60)),
+     bty = "l", col = "blueviolet")
+abline(h = max(r2s), col = "#00000080", lty = 2, lwd = 2)
+dev.off()
+```
+
+
+\setstretch{2}
+
+\newpage
 
 \setstretch{1.1}
 \setlength{\parskip}{12pt}
