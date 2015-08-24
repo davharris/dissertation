@@ -62,7 +62,7 @@ Committee in charge
 2015
 
 \end{center}
-\setlength{\parskip}{6pt}
+\setlength{\parskip}{5pt}
 
 \newpage
 
@@ -72,6 +72,7 @@ Committee in charge
 
 \newpage
 \setstretch{2}
+\setlength{\parskip}{6pt}
 
 ## Abstract
 
@@ -99,6 +100,16 @@ asdf
 
 David J. Harris
 
+## Abstract
+
+1. Species distribution models (SDMs) represent important analytical and predictive tools for ecologists. Until now, these models have either assumed (1) that species' occurrence probabilities are uncorrelated, or (2) that species respond linearly to preselected environmental variables. These two assumptions currently prevent ecologists from modeling assemblages with realistic co-occurrence and species richness properties.
+
+2. This paper introduces a stochastic feedforward neural network, called "mistnet", which makes neither assumption. Thus, unlike most SDMs, mistnet can account for non-independent co-occurrence patterns driven by unobserved environmental heterogeneity. And unlike several recently proposed Joint SDMs, the model can also learn nonlinear functions relating species' occurrence probabilities to environmental predictors.
+
+3. Mistnet makes more accurate predictions about the North American bird communities found along Breeding Bird Survey transects than several alternative methods tested. In particular, typical assemblages held out of sample for validation were each tens of thousands of times more likely under the mistnet model than under independent combinations of single-species predictions.
+
+4. Apart from improved accuracy, mistnet shows two other important benefits for ecological research and management. First: by analyzing co-occurrence data, mistnet can identify unmeasured---and perhaps unanticipated---environmental variables that drive species turnover. For example, the model identified a strong grassland/forest gradient, even though only temperature and precipitation were given as model inputs. Second: mistnet is able to take advantage of outside information to guide its predictions towards more realistic assemblages. For example, mistnet automatically adjusts its expectations to include more forest-associated species in response to a stray observation of a forest-dwelling warbler.
+
 ## Introduction
 A major goal of community ecology is to understand the processes, such as environmental filtering and species interactions, that determine where species could occur and which species can occur together [@chase_community_2003].
 Traditional multivariate methods for studying these issues in community ecology---such as ordination techniques for summarizing a data matrix's multivariate geometry---will not always provide the best approach to these questions, as they typically do not specify a data-generating mechanism or make predictions about new assemblages [but see @walker_random-effects_2011].
@@ -112,9 +123,9 @@ Given that most models only use climate variables as predictors [@austin_improvi
 SDMs' failure to include other ecological processes is thus widely considered to be a major omission from statistical ecology's toolbox [@austin_improving_2011; @guisan_sesam_2011; @kissling_towards_2012; @wisz_role_2013; @clark_more_2013].
 
 In the last few years, several mixed models have been proposed to help explain the co-occurrence patterns that stacked SDMs ignore [@latimer_hierarchical_2009; @ovaskainen_modeling_2010; @golding_phd_2013; @clark_more_2013; @pollock_understanding_2014].
-These *joint* species distribution models (JSDMs) can produce mixtures of possible species assemblages (points in Figure 1a), rather than relying on a small number of environmental measurements to fully describe each species' probability of occurrence (which would collapse the distribution in Figure 1a to a single point).
+These *joint* species distribution models (JSDMs) can produce mixtures of possible species assemblages (points in Figure 1.1.a), rather than relying on a small number of environmental measurements to fully describe each species' probability of occurrence (which would collapse the distribution in Figure 1.1.A to a single point).
 In JSDMs (as in nature), a given set of climate estimates could be consistent with a number of different sets of co-occurring species, depending on factors that ecologists have not necessarily measured or even identified as important.
-JSDMs represent these unobserved (latent) factors as random variables whose true values are unknown, but whose existence would still help explain discrepancies between the data and the stacked SDMs' predictions (Figure 1).
+JSDMs represent these unobserved (latent) factors as random variables whose true values are unknown, but whose existence would still help explain discrepancies between the data and the stacked SDMs' predictions (Figure 1.1).
 While JSDMs represent a major advance in community-level modeling [@clark_more_2013; @pollock_understanding_2014], existing implementations have all assumed that species' responses to the environment are linear (in the sense of a generalized linear model), limiting their accuracy and utility.
 
 
@@ -154,17 +165,17 @@ Each route includes 50 stops, about 0.8 km apart.
 At each stop, all the birds observed in a 3-minute period are recorded, using a standardized procedure.
 Following BBS recommendations, I omitted nonstandard routes and data collected on days with bad weather.
 
-To evaluate SDMs' predictive capabilities, I split the routes into a "training" data set consisting of 1559 routes and a "test" data set consisting of 280 routes (Figure 2; Appendix A).
-The two data sets were separated by a 150-km buffer to ensure that models could not rely on spatial autocorrelation to make accurate predictions about the test set [c.f. @bahn_can_2007; Appendix A].
+To evaluate SDMs' predictive capabilities, I split the routes into a "training" data set consisting of 1559 routes and a "test" data set consisting of 280 routes (Figure 1.2; Appendix A.1).
+The two data sets were separated by a 150-km buffer to ensure that models could not rely on spatial autocorrelation to make accurate predictions about the test set [c.f. @bahn_can_2007; Appendix A.1].
 Each model was fit to the same training set, and then its performance was evaluated out-of-sample on the test set.
 
 ![Map of the BBS routes used in this analysis. Black points are training routes; red ones are test routes. The training and test routes are separated by a 150-km buffer in order to minimize spatial autocorrelation across the two partitions.](figures/1/map.png)
 
 Observational data for each species was reduced to "presence" or "absence" at the route level, ignoring the possibility of observation error for the purposes of this analysis.
-368 species were chosen for analysis according to a procedure described in Appendix A.
+368 species were chosen for analysis according to a procedure described in Appendix A.1.
 
 I extracted the 19 Bioclim climate variables for each route from Worldclim [version 1.4; @hijmans_very_2005] for use as environmental predictors.
-After removing predictors that were nearly collinear, eight climate-based predictors remained for the analyses (Appendix A).
+After removing predictors that were nearly collinear, eight climate-based predictors remained for the analyses (Appendix A.1).
 Since most SDMs do not use land cover data [@austin_improving_2011] and one of mistnet's goals is to make inferences about unobserved environmental variation, no other variables were included in this analysis.
 
 Finally, I obtained habitat classifications for each species from the Cornell Lab of Ornithology's All About Birds website (AAB; www.allaboutbirds.org) using an R script written by K. E. Dybala.
@@ -175,18 +186,18 @@ This section discusses the stochastic networks in general terms; the specific mo
 In general, ecologists have not had much success using neural networks for SDM [e.g. @dormann_components_2008], but neural networks' recent success in other machine learning contexts [including contexts with latent random variables; @murphy_machine_2012; @bengio_deep_2013] makes them worth a second look for JSDM.
 While one can build stochastic versions of other nonlinear regression methods as well [e.g. @hutchinson_incorporating_2011], the relative simplicity of the backpropagation algorithm for training neural networks [@murphy_machine_2012] makes them very appealing for exploratory research.
 
-A neural net is a statistical model that makes its predictions by applying a series of nonlinear transformations to one or more predictor variables such as environmental measurements (Figure 3; Appendix B).
+A neural net is a statistical model that makes its predictions by applying a series of nonlinear transformations to one or more predictor variables such as environmental measurements (Figure 1.3; Appendix A.2).
 After a suitable transformation of the environmental data, a final operation performs logistic regressions in the transformed space to make predictions about each species' occurrence probability [cf @leathwick_using_2005].
-Training a neural network entails simultaneously optimizing the parameters associated with these transformations to optimize the overall likelihood (Appendix C).
+Training a neural network entails simultaneously optimizing the parameters associated with these transformations to optimize the overall likelihood (Appendix A.3).
 
 ![**A** A generalized diagram for stochastic feed-forward neural networks that transform environmental variables into occurrence probabilities multiple species. The network's hidden layers perform a nonlinear transformation of the observed and unobserved ("latent") environmental variables; each species' occurrence probability then depends on the state of the final hidden layer in a generalized linear fashion. **B** The specific network used in this paper, with two hidden layers.  The inputs include Worldclim variables involving temperature and precipitation, as well as random draws from each of the latent environmental factors. These inputs are multiplied by a coefficient matrix and then nonlinearly transformed in the first hidden layer. The second hidden layer uses a different coefficient matrix to linearly transform its inputs down to a smaller number of variables (like Principal Components Analysis of the previous layer's activations). A third matrix of coefficients links each species' occurrence probability to each of the variables in this linear summary (like one instance of logistic regression for each species). The coefficients are all learned using a variant of the backpropagation algorithm.](figures/1/network-schematic.pdf)
 
 Most neural networks' predictions are deterministic functions of their inputs.
 Applied to SDM, this would mean that each species' occurrence probability would be fully specified by the small number of variables that ecologists happen to measure.
-Mistnet's neural networks, in contrast, are *stochastic* [@neal_connectionist_1992; @tang_learning_2013; Appendix B], meaning that they allow species' occurrence probabilities to depend on unobserved environmental factors as well.
+Mistnet's neural networks, in contrast, are *stochastic* [@neal_connectionist_1992; @tang_learning_2013; Appendix A.2], meaning that they allow species' occurrence probabilities to depend on unobserved environmental factors as well.
 The true values of these unobserved factors are (by definition) not known, but one can still represent their *possible* values using samples from a probability distribution.
 In the absence of any information about what these variables should represent, mistnet defaults to sampling them from standard normal distributions.
-Depending on which values are sampled (i.e. on the possible states of the environment), the model could expect to see radically different kinds of species assemblages (Figure 1, Figure 3).
+Depending on which values are sampled (i.e. on the possible states of the environment), the model could expect to see radically different kinds of species assemblages (Figure 1.1, Figure 1.3).
 
 Inference can also proceed backward through a stochastic network: the presence (or absence) of one species provides information about the local environment, which can then be used to make better predictions about other species.
 For example, suppose that a researcher has more data about the local distribution of waterfowl---which are of special interest to hunters and conservation groups---than about other species.
@@ -196,7 +207,7 @@ These species' predicted occurrence probabilities should thus increase automatic
 Notably, the required correlations are automatically inferred from species' co-occurrence patterns, so the accuracy of these updated predictions does not depend closely on the user's ecological intuition about species' environmental tolerances.
 
 As with most neural networks, a mistnet model's coefficients are initialized randomly, and then an optimization procedure attempts to climb the log-likelihood surface by iteratively adjusting the coefficients toward better values (i.e. gradient-based hill-climbing).
-In mistnet models, these adjustments are calculated with a variant of the backpropagation algorithm suggested by @tang_learning_2013 (described in more detail in Appendix C).
+In mistnet models, these adjustments are calculated with a variant of the backpropagation algorithm suggested by @tang_learning_2013 (described in more detail in Appendix A.3).
 The generalized expectation maximization procedure used in this variant alternates between inferring the states of the latent variables that produced the observed assemblages (via importance sampling) and updating the model's coefficients to make better predictions (via weighted backpropagation).
 By iteratively improving the model's estimates of the latent environmental factors and of the parameters governing species' responses to them, this procedure will eventually bring the model---with probability one---to a local maximum likelihood estimate [@tang_learning_2013; @neal_view_1998].
 
@@ -210,13 +221,13 @@ https://github.com/davharris/mistnet/releases.
 ### A mistnet model for bird assemblages
 
 Mistnet models can take a variety of forms, depending on the statistical or biological problems of interest.
-The model used in these analyses, shown in Figure 3b, uses two hidden layers that transform the environmental data into a form that is suitable for a linear classifier; the final layer essentially performs logistic regression in this transformed space.
+The model used in these analyses, shown in Figure 1.3.b, uses two hidden layers that transform the environmental data into a form that is suitable for a linear classifier; the final layer essentially performs logistic regression in this transformed space.
 As discussed below, this structure is designed to improve the interpretability of the model, relative to other nonlinear SDMs.
 
 Each hidden unit ("neuron") in the first layer is sensitive to a different axis of environmental variation (e.g. one neuron could respond positively to "cold and wet" environments, while another could respond to "hot and humid" environments).
-The hidden units' responses are nonlinear (Appendix B), expressing the possibility that---for example---species might be more sensitive to a one-degree change in temperature from 25-26$^{\circ}$ C than to a change of the same magnitude from 19-20$^{\circ}$ C.
+The hidden units' responses are nonlinear (Appendix A.2), expressing the possibility that---for example---species might be more sensitive to a one-degree change in temperature from 25-26$^{\circ}$ C than to a change of the same magnitude from 19-20$^{\circ}$ C.
 
-The second hidden layer collapses first layer’s description of the environment down to a smaller number of values (e.g. 15 in this analysis; Appendix D), using a linear transformation.
+The second hidden layer collapses first layer’s description of the environment down to a smaller number of values (e.g. 15 in this analysis; Appendix A.4), using a linear transformation.
 Thus, the network's structure ensures that each species' response to the environment can be described using a small number of coefficients (e.g., one for each of the 15 transformed environmental variables described in the second layer, plus an intercept term).
 The small number of coefficients and the consistency of their ecological roles across species make mistnet models highly interpretable: the coefficients linking the second hidden layer to a given species' probability of occurrence essentially describe that species' responses to the leading principal components of environmental variation [cf @vincent_stacked_2010].
 For comparison, the boosted regression tree SDMs used below [@elith_working_2008] have tens of thousands of coefficients per species, with entirely new interpretations for each new species' coefficients.
@@ -224,12 +235,12 @@ For comparison, the boosted regression tree SDMs used below [@elith_working_2008
 Apart from limiting the number of coefficients per species, two additional factors constrained the model's capacity for overfitting.
 First, the coefficients in each layer were constrained using weak Gaussian priors, preventing any one variable from dominating the network.
 Second, a very weak $\mathrm{Beta}(1.000001, 1.000001)$ prior was used to reduce the prevalence of overconfident predictions (|odds ratio| $> 10^6$).
-The size of each layer and optimization details were chosen by cross-validation (see Appendix D for the settings that were evaluated, along with their cross-validated likelihoods).
+The size of each layer and optimization details were chosen by cross-validation (see Appendix A.4 for the settings that were evaluated, along with their cross-validated likelihoods).
 
 ### Existing models used for comparison
 
 I compared mistnet's predictive performance with two machine learning techniques and with a linear JSDM.
-Each technique is described briefly below; see Appendix D for each model's settings.
+Each technique is described briefly below; see Appendix A.4 for each model's settings.
 
 The first machine learning method I used for comparison, boosted regression trees (BRT), is among the most powerful techniques available for single-species SDM [@elith_novel_2006; @elith_working_2008].
 I trained one BRT model for each species using the `gbm` package [@ridgeway_gbm_2013] and stacked them following the recommendations in @calabrese_stacking_2014.
@@ -244,7 +255,7 @@ Finally, I trained a linear JSDM using the BayesComm package [@golding_phd_2013;
 I evaluated mistnet's predictions both qualitatively and quantitatively.
 Qualitative assessments involved looking for patterns in the model's predictions and comparing them with ornithological knowledge (e.g. the AAB habitat classifications).
 
-Each model was evaluated quantitatively on the test routes (red points in Figure 2) to assess its predictive accuracy out-of-sample.
+Each model was evaluated quantitatively on the test routes (red points in Figure 1.2) to assess its predictive accuracy out-of-sample.
 Models were scored according to their predictive likelihoods, i.e. the probabilities they assigned to various scenarios observed in the test data.
 Models with high likelihoods tend to produce realistic co-occurrence patterns, and should yield more biologically relevant insights about the processes underlying those patterns.
 Models that overfit or underfit will have lower out-of-sample likelihoods, and drawing scientific conclusions from them could be unwise.
@@ -260,11 +271,11 @@ For the two JSDMs, I calculated the confidence intervals for the appropriate mix
 
 ### Mistnet's view of North American bird assemblages
 
-I began by decomposing the variance in the mistnet's species-level predictions among routes (which varied in their climate values) and residual (within-route) variation (Appendix E).
+I began by decomposing the variance in the mistnet's species-level predictions among routes (which varied in their climate values) and residual (within-route) variation (Appendix A.5).
 On average, the residuals accounted for 30% of the variance in mistnet's predictions, suggesting that non-climate factors play a substantial role in habitat filtering.
 
 If the non-climate factors mistnet identified were biologically meaningful, then there should be a strong correspondence between the 12 coefficients assigned to each species by mistnet and the AAB habitat classifications.
-A linear discriminant analysis [LDA; @venables_modern_2002] demonstrated such a correspondence (Figure 4).
+A linear discriminant analysis [LDA; @venables_modern_2002] demonstrated such a correspondence (Figure 1.4).
 Mistnet's coefficients cleanly distinguished several groups of species by habitat association (e.g. "Grassland" species versus "Forest" species), though the model largely failed to distinguish "Marsh" species from "Lake/Pond" species and "Scrub" species from "Open Woodland" species.
 These results indicate that the model has identified the broad differences among communities, but that it lacks some fine-scale resolution for distinguishing among types of wetlands and among types of partially-wooded areas.
 Alternatively, perhaps these finer distinctions are not as salient at the scale of a 40-km transect or require more than two dimensions to represent.
@@ -273,12 +284,12 @@ Alternatively, perhaps these finer distinctions are not as salient at the scale 
 
 While one might be able to produce a similar-looking scatterplot using ordination methods such as nonmetric multidimensional scaling [NMDS; @mccune_analysis_2002], the interpretation would be very different.
 Species' positions in an ordination plots are chosen to preserve the multivariate geometry of the data and do not usually connect to any data-generating process or to a predictive model.
-In Figure 4, by contrast, each species' coordinates describe the predicted slopes of its responses to two axes of environmental variation; these slopes could be used to make specific predictions about occurrence probabilities at new sites.
+In Figure 1.4, by contrast, each species' coordinates describe the predicted slopes of its responses to two axes of environmental variation; these slopes could be used to make specific predictions about occurrence probabilities at new sites.
 Likewise, deviations from these predictions could be used to falsify the underlying model, without the need for expensive permutation tests or comparison with a null model.
-The close connection between model and visualization demonstrated in Figure 4 may prove especially useful in contexts where prediction and understanding are both important.
+The close connection between model and visualization demonstrated in Figure 1.4 may prove especially useful in contexts where prediction and understanding are both important.
 
-The environmental gradients identified in Figure 4 are explored further in Figure 5.
-Figure 5A shows how the forest/grassland gradient identified by mistnet affects the model’s predictions for a pair of species with opposite responses to forest cover.
+The environmental gradients identified in Figure 1.4 are explored further in Figure 1.5.
+Figure 1.5.A shows how the forest/grassland gradient identified by mistnet affects the model’s predictions for a pair of species with opposite responses to forest cover.
 The model cannot tell *which* of these two species will be observed (since it was only provided with climate data), but the model has learned enough about these two species to tell that the probability of observing *both* along the same 40-km transect is much lower than would be expected if the species were uncorrelated.
 
 ![ **A.** The mistnet model has learned that Red-breasted Nuthatches (*Sitta canadensis*) and Horned Larks (*Eremophila alpestris*) have opposite responses to some environmental factor whose true value is unknown.
@@ -290,30 +301,30 @@ The model's updated expectations can be found at the head of the green arrow.
 **D.** If a Redhead (*Aythya americana*) had been observed instead, the model would correctly expect to see more water-associated birds and fewer forest dwellers.
 ](figures/1/neighborly-advice.pdf)
 
-Figure 5A reflects a great deal of uncertainty, which is appropriate considering that the model has no information about a crucial environmental variable (forest cover).
-Often, however, additional information is available that could help resolve this uncertainty, and the mistnet package includes a built-in way to do so, as indicated in Figures 5B and 5C.
+Figure 1.5.A reflects a great deal of uncertainty, which is appropriate considering that the model has no information about a crucial environmental variable (forest cover).
+Often, however, additional information is available that could help resolve this uncertainty, and the mistnet package includes a built-in way to do so, as indicated in Figures 1.5.B and 1.5.C.
 These panels show how the model is able to use a chance observation of a forest-associated Nashville Warbler (*Oreothlypis ruficapilla*) to indicate that a whole suite of other forest-dwelling species are likely to occur nearby, and that a variety of species that prefer open fields and wetlands should be absent.
-Similarly, Figure 5D shows how the presence of a Redhead duck (*Aythya americana*) can inform the model that a route likely contains suitable habitat for waterfowl, marsh-breeding blackbirds, shorebirds, and rails (along with the European Starling and Bobolink, whose true wetland associations are somewhat weaker).
+Similarly, Figure 1.5.D shows how the presence of a Redhead duck (*Aythya americana*) can inform the model that a route likely contains suitable habitat for waterfowl, marsh-breeding blackbirds, shorebirds, and rails (along with the European Starling and Bobolink, whose true wetland associations are somewhat weaker).
 None of these inferences would be possible from a stack of disconnected single-species SDMs, nor would traditional ordination methods have been able to quantify the changes.
 
 ### Model comparison: species richness
 
 Environmental heterogeneity plays an especially important role in determining species richness, which is often overdispersed relative to models' expectations [@ohara_species_2005].
-Figure 6 shows that mistnet's predictions respect the heterogeneity one might find in nature: areas with a given climate could plausibly be either very unsuitable for most waterfowl (Anatid richness < 2 species) or much more suitable (Anatid richness > 10 species).
-Under the independence assumption used for stacking SDMs, however, both of these scenarios would be ruled out (Figure 6A).
+Figure 1.6 shows that mistnet's predictions respect the heterogeneity one might find in nature: areas with a given climate could plausibly be either very unsuitable for most waterfowl (Anatid richness < 2 species) or much more suitable (Anatid richness > 10 species).
+Under the independence assumption used for stacking SDMs, however, both of these scenarios would be ruled out (Figure 1.6A).
 
 ![The predicted distribution of species richness values one would expect to find based on predictions from mistnet and from the deterministic neural network baseline.
 **A.** Anatid (waterfowl) species richness. **B.** Total species richness.
 BRT's predictions (not shown) are similar to the baseline network, since neither one accounts for the effects of unmeasured environmental heterogeneity. In general, both networks' mean predictions are equally distant from the observed values, but only mistnet represents its uncertainty adequately.](figures/1/family-richness.pdf)
 
 Stacking leads to even larger errors when predicting richness for larger groups, such as the complete set of birds studied here.
-Models that stacked independent predictions consistently underestimated the range of biologically possible outcomes (Figure 6B), frequently putting million-to-one or even billion-to-one odds against species richness values that were actually observed.
+Models that stacked independent predictions consistently underestimated the range of biologically possible outcomes (Figure 1.6.B), frequently putting million-to-one or even billion-to-one odds against species richness values that were actually observed.
 These models' 95% confidence intervals were so narrow that half of the observed species richness values fell outside the predicted range.
 The overconfidence associated with stacked models could have serious consequences in both management and research contexts if we fail to prepare for species richness values outside such unreasonably narrow bounds (e.g. expecting a reserve to protect 40-50 species even though it only supports 15).
 Mistnet, on the other hand, was able to explore the range of possible non-climate environments to avoid these missteps: 90% of the test routes fell within mistnet's 95% confidence intervals, and the log-likelihood ratio decisively favored it over stacked alternatives.
 
 ### Model comparison: single species
-Figure 7A compares the models' ability to make predictions for a single species across all the test routes (shown as the exponentiated expected log-likelihood).
+Figure 1.7.A compares the models' ability to make predictions for a single species across all the test routes (shown as the exponentiated expected log-likelihood).
 While there was substantial variation among species, the two neural network models' predictions averaged more than an order of magnitude better than BRT's.
 Moreover, these models' advantage over BRT was largest for low-prevalence species (linear regression of log-likelihood ratio versus log-prevalence; p = $3\cdot 10^{-4}$), which will often be of the greatest concern to conservationists.
 The most likely reason for this improvement was a reduction in overfitting: while the overall model included complex nonlinear transformations, the number of degrees of freedom associated with any given species in the final logistic regression layer was modest (15 weights plus an intercept term).
@@ -333,13 +344,13 @@ Sampling long Markov chains over a dense, full-rank covariance matrix (as has ap
 
 While making predictions about individual species is fairly straightforward with this data set (since most species have relatively narrow breeding ranges), community ecology is more concerned with co-occurrence and related patterns involving community composition [@chase_community_2003].
 Mistnet was able to use the correlation structure of the data to reduce the number of independent bits of information needed to make an accurate prediction.
-As a result, mistnet's route-level likelihood averaged 430 times higher than the baseline neural network's and 45,000 times higher than BRT's (Figure 7B).
+As a result, mistnet's route-level likelihood averaged 430 times higher than the baseline neural network's and 45,000 times higher than BRT's (Figure 1.7.B).
 BayesComm demonstrated a similar effect, but not strongly enough to overcome the low quality of its species-level predictions.
 
 ## Conclusion
 
-The large discrepancy between the performance of linear and nonlinear methods shown in Figure 7A confirms previous results: accuracy in SDM applications requires the flexibility to learn about the functional form of species' environmental responses from the data [@elith_novel_2006].
-Likewise, mistnet's large improvement over stacked models (Figure 6, Figure 7B) provides strong evidence that accurate assemblage-level predictions require accounting for unmeasured environmental heterogeneity---especially when reasonable confidence intervals are required.
+The large discrepancy between the performance of linear and nonlinear methods shown in Figure 1.7.A confirms previous results: accuracy in SDM applications requires the flexibility to learn about the functional form of species' environmental responses from the data [@elith_novel_2006].
+Likewise, mistnet's large improvement over stacked models (Figure 1.6, Figure 1.7.B) provides strong evidence that accurate assemblage-level predictions require accounting for unmeasured environmental heterogeneity---especially when reasonable confidence intervals are required.
 Currently, mistnet appears to be the only software package that meets both of these criteria, providing both nonlinear responses to the environment and a method for dealing with assemblage-level responses to unobserved environmental heterogeneity.
 
 Mistnet can also identify some of the same similarities among species that a skilled biologist would expect to find.
@@ -366,7 +377,7 @@ This work benefitted greatly from discussions with A. Sih and his lab meeting gr
 It was funded by a Graduate Research Fellowship from the National Science Foundation, the UC Davis Center for Population Biology, and the California Department of Water Resources.
 I gratefully acknowledge the field biologists that collected the BBS data, as well as the US Geological Survey, Cornell Lab of Ornithology, and Worldclim for making their data publicly available.
 
-## Data Accessibility:
+## Data Accessibility
 * All data sets used here are freely downloadable from their original sources.
 * The mistnet source code is at https://github.com/davharris/mistnet and can be installed with the `install_github` function from the `devtools` package. The specific version used in this paper is at https://github.com/davharris/mistnet/releases/tag/v0.2.0
 
@@ -390,6 +401,26 @@ I gratefully acknowledge the field biologists that collected the BBS data, as we
 
 David J. Harris
 
+## Abstract
+
+Estimating species interactions from observational data is one of
+the most controversial tasks in community ecology. One difficulty is that a
+single pairwise interaction can ripple through an ecological network and produce
+surprising indirect consequences. For example, the negative correlation between
+two competing species can be reversed in the presence of a third species that is
+capable of outcompeting both of them. Here, I apply models from statistical
+physics, called Markov networks or Markov random fields, that can predict
+the direct and indirect consequences of any possible species interaction matrix.
+Interactions in these models can be estimated from observational data via
+maximum likelihood. Using simulated landscapes with known pairwise interaction
+strengths, I evaluated Markov networks and six existing approaches. The
+Markov networks consistently outperformed other methods, correctly isolating
+direct interactions between species pairs even when indirect interactions
+largely overpowered them. Two computationally efficient approximations, based on
+linear and generalized linear models, also performed well. Indirect effects
+reliably caused a common null modeling approach to produce incorrect inferences,
+however.
+
 ## Introduction
 
 To the extent that nontrophic species interactions (such as competition) affect
@@ -401,14 +432,14 @@ Despite decades of work and several major controversies, however
 on community structure are unreliable [@gotelli_empirical_2009]. In particular,
 species' effects on one another can become lost in the complex web of direct and
 indirect interactions in real assemblages. For example, the competitive
-interaction between the two shrub species in Figure 1A can become obscured by
-their shared tendency to occur in unshaded areas (Figure 1B). While ecologists
+interaction between the two shrub species in Figure 2.1.A can become obscured by
+their shared tendency to occur in unshaded areas (Figure 2.1.B). While ecologists
 have long known that indirect effects can overwhelm direct ones at the landscape
 level [@dodson_complementary_1970; @levine_competitive_1976], the vast majority of our methods for drawing
 inferenes from observational data do not control for these effects
 [e.g. @diamond_island_1975; @strong_ecological_1984; @gotelli_empirical_2009;
 @veech_probabilistic_2013; @pollock_understanding_2014]. To the extent that
-indirect interactions like those in Figure 1 are generally important
+indirect interactions like those in Figure 2.1 are generally important
 [@dodson_complementary_1970], existing methods will thus not generally provide
 much evidence regarding species' direct effects on one another. The goal of this
 paper is to resolve this long-standing problem.
@@ -425,7 +456,7 @@ correct identification of the negative shrub-shrub interaction (circled).](figur
 
 While competition doesn't reliably reduce co-occurrence rates at the whole-landscape
 level (as most of our methods assume), it nevertheless does leave a signal in
-the data (Figure 1C). Specifically, after partitioning the data set into shaded
+the data (Figure 2.1.C). Specifically, after partitioning the data set into shaded
 sites and unshaded sites, there will be co-occurrence deficits in each subset
 that might not be apparent at the landscape level. More generally,
 we can obtain much better estimates of the association between two species from
@@ -464,7 +495,7 @@ abiotic interactions on species composition [@kissling_towards_2012;
 
 ### Markov networks.
 Markov networks provide a framework for translating back and forth between the
-conditional relationships among species (Figure 1C) and the kinds of species
+conditional relationships among species (Figure 2.1.C) and the kinds of species
 assemblages that these relationships produce. Here, I show how a set of
 conditional relationships can be used to determine how groups of species
 can co-occur. Methods for estimating conditional relationships from data are
@@ -485,7 +516,7 @@ controls the prevalence of species $i$. Similarly, $\beta_{ij}$ is the amount
 that the co-occurrence of species $i$ and species $j$ contributes to the
 log-probability; it controls the conditional relationship between two species,
 i.e. the probability that they will be found together, after controlling for the
-other species in the network (Figure 2A, Figure 2B). For example, $\beta_{ij}$
+other species in the network (Figure 2.2.A, Figure 2.2.B). For example, $\beta_{ij}$
 might have a value of $+2$ for two mutualists, indicating that the odds of
 observing one species are $e^2$ times higher in sites where its partner is
 present than in comparable sites where its partner is absent. Because the
@@ -512,11 +543,11 @@ $\beta_{12}$ equaled zero (e.g. if the species no longer competed for the same
 resources), then the reduction in competition would allow each species to
 increase its occurrence rate and the co-occurrence deficit would be eliminated.](figures/2/Figure_2.pdf)
 
-Of course, if all else is *not* equal (e.g. Figure 1, where the presence of one
+Of course, if all else is *not* equal (e.g. Figure 2.1, where the presence of one
 competitor is associated with release from another competitor), then species'
 marginal association rates can differ from this expectation. Determining the
 marginal relationships between species from their conditional interactions
-entails summing over the different possible assemblages (Figure 2B). This
+entails summing over the different possible assemblages (Figure 2.2.B). This
 becomes intractable when the number of possible assemblages is large, though
 several methods beyond the scope of this paper can be employed to keep the
 calculations feasible [@lee_learning_2012; @salakhutdinov_learning_2008].
@@ -548,25 +579,25 @@ debates of the 1970's and 1980's [@lewin_santa_1983].
 ### Simulated landscapes.
 In order to compare different methods, I simulated two sets of landscapes using
 known parameters. The first set included the three competing species shown in
-Figure 1. For each of 1000 replicates, I generated a landscape with 100 sites by
+Figure 2.1. For each of 1000 replicates, I generated a landscape with 100 sites by
 sampling from a probability distribution defined by the figure's interaction
-coefficients (Appendix 1). Each of the methods described below was then
+coefficients (Appendix B.1). Each of the methods described below was then
 evaluated on its ability to correctly infer that the two shrub species competed
 with one another, despite their frequent co-occurrence.
 
 I also simulated a second set of landscapes using a stochastic community model
-based on generalized Lotka-Volterra dynamics, as described in Appendix 2. In
+based on generalized Lotka-Volterra dynamics, as described in Appendix B.2. In
 these simulations, each species pair was randomly assigned to either compete for
 a portion of the available carrying capacity (negative interaction) or to act as
 mutualists (positive interaction).  Here, mutualisms operate by mitigating the
 effects of intraspecific competition on each partner's death rate.  For these
 analyses, I simulated landscapes with up to 20 species and 25, 200, or 1600
-sites (50 replicates per landscape size; see Appendix 2).
+sites (50 replicates per landscape size; see Appendix B.2).
 
 ### Recovering species interactions from simulated data.
 
 I compared seven techniques for determining the sign and strength of the
-associations between pairs of species from simulated data (Appendix 3).
+associations between pairs of species from simulated data (Appendix B.3).
 First, I used the rosalia package [@harris_rosalia_2015] to fit Markov newtork
 models,  as described above. For the analyses with 20 species, I added a very
 weak logistic prior distribution on the $\alpha$ and $\beta$ terms with scale 2
@@ -579,7 +610,7 @@ Laplace distribution used in LASSO regularization (especially in the tails), but
 unlike the Laplace distribution it is differentiable everywhere and does not
 force any estimates to be exactly zero. To confirm that this procedure produced
 stable estimates, I compared its estimates on 50 bootstrap replicates
-(Appendix 4).
+(Appendix B.4).
 
 I also evaluated six alternative methods: five from the existing literature,
 plus a novel combination of two of these methods. The first alternative interaction
@@ -620,9 +651,9 @@ the posterior mean *partial* correlation, which might be able to control for
 indirect effects.
 
 ### Evaluating model performance.
-For the simulated landscapes based on Figure 1, I assessed whether each method's
+For the simulated landscapes based on Figure 2.1, I assessed whether each method's
 test statistic indicated a positive or negative relationship between the two
-shrubs (Appendix 1). For the null model (Pairs), I calculated statistical
+shrubs (Appendix B.1). For the null model (Pairs), I calculated statistical
 significance using its $Z$-score. For the Markov network, I used the Hessian
 matrix to generate approximate confidence intervals and noted whether these
 intervals included zero.
@@ -645,7 +676,7 @@ null model that assumed all interaction strengths to be zero).
 ## Results
 
 ### Three species.
-As shown in Figure 1, the marginal relationship between the two shrub species
+As shown in Figure 2.1, the marginal relationship between the two shrub species
 was positive---despite their competition for space at a mechanistic level---due
 to indirect effects of the dominant tree species. As a result, the correlation
 between these species was positive in 94% of replicates, and the
@@ -657,7 +688,7 @@ from their positive indirect interaction 94% of the time (although the
 confidence intervals overlapped zero in most replicates).
 
 ### Twenty species.
-Despite some variability across contexts (Figure 3A), the four methods that
+Despite some variability across contexts (Figure 2.3.A), the four methods that
 controlled for indirect effects clearly performed the best: the Markov network
 explained the largest portion of the variance in the "true" interaction
 coefficients (35% overall), followed by the generalized linear models (30%),
@@ -680,21 +711,21 @@ based on the raw data performed the best (19%), followed by the null model
 (15%) and BayesComm's correlation matrix (11%). Although these last three
 methods had different $R^2$ values, there was a close mapping among
 their estimates (especially after controlling for the size of the simulated
-landscapes; Figure 3B).  This suggests that the effect sizes from the null model
+landscapes; Figure 2.3.B).  This suggests that the effect sizes from the null model
 (and, to a lesser extent, the correlation matrices from joint species
 distribution models) only contain noisy versions of the same information that
 could be obtained more easily and interpretably by calculating correlation
 coefficients between species' presence-absence vectors.
 
 Bootstrap resampling indicated that the above ranking of the different methods
-was robust (Appendix 3). In particular, the 95% confidence interval of the
+was robust (Appendix B.3). In particular, the 95% confidence interval of the
 bootstrap distribution indicated that the Markov network's overall $R^2$ value
 was between 14 and 18 percent higher than the second-most effective
 method (generalized linear models) and between 2.12 and 2.38 times higher than
 could be achieved by the null model (Pairs).  Bootstrap resampling of a 200-site
 landscape also confirmed that the rosalia package's estimates of species'
 conditional relationships were robust to sampling variation for reasonably-sized
-landscapes (Appendix 4).
+landscapes (Appendix B.4).
 
 ## Discussion
 
@@ -702,7 +733,7 @@ The results presented above show that Markov networks can reliably recover
 species' pairwise interactions from observational data, even for cases where
 a common null modeling technique reliably fails. Specifically, Markov networks
 were successful even when direct interactions were largely overwhelmed by
-indirect effects (Figure 1). For cases where fitting a Markov network is
+indirect effects (Figure 2.1). For cases where fitting a Markov network is
 computationally infeasible, these results also indicate that partial covariances
 and generalized linear models (the two methods that estimated conditional
 relationships rather than marginal ones) can both provide useful approximations.
@@ -727,7 +758,7 @@ ecologists would need other kinds of data, as from time series, behavioral
 observations, manipulative experiments, or natural history. These other sources
 of information could also be used to augment the likelihood function with an
 informative prior distribution, which could lead to better results on some real
-data sets than was shown in Figure 3A.
+data sets than was shown in Figure 2.3.A.
 
 Despite their limitations, Markov networks have enormous potential to improve
 ecological understanding. In particular, they are less vulnerable than some
@@ -740,7 +771,7 @@ debates in the 1980’s [@roughgarden_competition_1983; @strong_ecological_1984]
 Equation 1 can be used to calculate the expected prevalence of a species in the
 absence of biotic influences [$\frac{e^\alpha}{1 + e^{\alpha}}$; @lee_learning_2012].
 Competition's effect on prevalence in a Markov network can then be calculated by
-subtracting this value from the observed prevalence (cf Figure 2D). This kind of
+subtracting this value from the observed prevalence (cf Figure 2.2.D). This kind of
 insight would have been difficult to obtain without a generative model that
 makes predictions about the consequences of species interactions; null models
 (which presume *a priori* that interactions do not exist) have no way to make
@@ -773,10 +804,10 @@ null model must be interpreted with care [@roughgarden_competition_1983]. Even
 in small networks with three species, it may simply not be possible to implicate
 individual species pairs or specific ecological processes like competition by
 rejecting a general-purpose null [@gotelli_empirical_2009], especially when the
-test statistic is effectively just a correlation coefficient (Figure 3B).
+test statistic is effectively just a correlation coefficient (Figure 2.3.B).
 Simultaneous estimation of multiple ecological parameters seems like a much more
 promising approach: to the extent that the models' relative performance on real
-data sets is similar to the range of results shown in Figure 3A, scientists in
+data sets is similar to the range of results shown in Figure 2.3.A, scientists in
 this field could often double their explanatory power by switching from null
 models to Markov networks (or increase it substantially with linear or
 generalized linear approximations). Regardless of the methods ecologists
@@ -812,11 +843,15 @@ very helpful feedback on the text.
 
 David J. Harris
 
+## Abstract
+
+Species interactions are believed to play an important role in community structure, but detecting their influence in the co-occurrence patterns of observed communities has stymied ecologists for decades.  While Markov networks (undirected graphical models also known as Markov random fields) represent a promising approach to this long-standing problem by isolating direct interactions from indirect ones, the methods ecologists have suggested for fitting these models are limited to small communities with about 20 species or fewer. Additionally, the methods that have been proposed so far do not account for environmental heterogeneity, and thus attempt to explain all of the co-occurrence patterns in ecological data sets with species interactions. In this paper, I introduce stochastic approximation as an alternative method for fitting these models that addresses both of these problems, making it feasible to use Markov networksin cases where each species responds to multiple abiotic factors and hundreds of competitors or mutualists. While stochastic approximation does introduce some sampling noise during the optimization process, it still converges to the maximum likelihood estimate for species' interaction coefficients with probability one.
+
 ## Introduction
 
 To the extent that species interactions are important for community assembly, ecologists generally expect them to leave a signature on species' co-occurrence patterns.  Using that signature to infer the underlying species interactions from observational data has been much harder, however.  Disagreements about how to draw these inferences led to an acrimonious, decade-long argument among community ecologists [@lewin_santa_1983], where essentially all of the proposed statistical approaches were criticized for having high error rates, a poor match with the underlying ecological questions, computational infeasibility, or all three [@connor_assembly_1979; @gilpin_factors_1982; @strong_ecological_1984; @hastings_can_1987]. As documented below, ecologists have, for the most part, not solved these problems in the ensuing decades. Resolving these issues would solve a longstanding issue in community ecology and make a significant contribution to other fields, such as species distribution modeling [@kissling_towards_2012].
 
-During the time that ecologists have struggled to identify the interactions among dozens of species, bioinformaticians have largely solved the analogous problem of estimating interactions among thousands of genes from their co-expression levels (e.g. @friedman_sparse_2008). The discrepancy is due to the fact that ecologists have chosen to focus, almost exclusively, on overall co-occurrence rates [@connor_assembly_1979; @gotelli_empirical_2009; @gilpin_factors_1982; @veech_probabilistic_2013] or on closely-related values such as correlation coefficients (Pollock et al. 2014; see Faisal et al. 2010 and Harris 2015 for two recent exceptions). As ecologists know, however, the correlation between two species will often reflect other factors beyond their direct pairwise interactions (e.g. abiotic influences and indirect biotic effects; Figure 1). When these factors are not accounted for, this reliance on overall co-occurrence rates can reliably lead to incorrect inferences [@harris_estimating_2015]. While some methods have been proposed for incorporating a small number of specific factors (such as geographic or environmental dissimilarity) into ecologists' null models at a time [@lessard_strong_2011], we still lack a good way to scale these approaches up for cases with many biotic and abiotic factors acting simultaneously.
+During the time that ecologists have struggled to identify the interactions among dozens of species, bioinformaticians have largely solved the analogous problem of estimating interactions among thousands of genes from their co-expression levels (e.g. @friedman_sparse_2008). The discrepancy is due to the fact that ecologists have chosen to focus, almost exclusively, on overall co-occurrence rates [@connor_assembly_1979; @gotelli_empirical_2009; @gilpin_factors_1982; @veech_probabilistic_2013] or on closely-related values such as correlation coefficients (Pollock et al. 2014; see Faisal et al. 2010 and Harris 2015 for two recent exceptions). As ecologists know, however, the correlation between two species will often reflect other factors beyond their direct pairwise interactions (e.g. abiotic influences and indirect biotic effects; Figure 3.1). When these factors are not accounted for, this reliance on overall co-occurrence rates can reliably lead to incorrect inferences [@harris_estimating_2015]. While some methods have been proposed for incorporating a small number of specific factors (such as geographic or environmental dissimilarity) into ecologists' null models at a time [@lessard_strong_2011], we still lack a good way to scale these approaches up for cases with many biotic and abiotic factors acting simultaneously.
 
 ![A hypothetical network of three species, two of which depend on an abiotic factor (annual rainfall).  **A.** The “true” network involves the caterpillar exploiting the two tree species as well as competition between the two trees.  The two trees also benefit from rainfall.  **B.** Although the two trees directly reduce one another’s occurrence probabilities via competition, they tend to occur in the same areas (with sufficient water and without too many herbivores).  An analysis that ignores these other factors could mistakenly conclude that the two trees were mutualists because of their high co-occurrence rate (circled "+" sign).  **C.** The methods presented here are designed to estimate the direct interactions between each pair of species, after accounting for other species and abiotic factors that could affect their co-occurrence rates (note that the circled interaction between the trees has the correct sign). Note that, with observational data, the bi-directional effects of species interactions (pairs of arrows between species) need to be collapsed to a single number describing the conditional relationship between species (one double-headed arrow).](figures/3/figure-1.pdf)
 
@@ -840,7 +875,7 @@ where $y_i$ is 1 when species $i$ is present and 0 when it is absent, $\alpha_i$
 
 $$p(\vec{y}) \propto \mathrm{exp}\Big({\sum_{i}{\alpha_i y_i} + \sum_{j \neq i}}{\beta_{ij} y_i y_j}\Big).$$
 
-Unfortunately, the exponentially large number of possible assemblages makes the normalizing constant for this joint probability distribution intractable when the number of species is larger than 20 or so.  However, it is generally straightforward to simulate examples of assemblages that are consistent with graphical models such as these, using Monte Carlo techniques like Gibbs sampling [@salakhutdinov_efficient_2012]. Gibbs sampling is especially convenient for these models because it only requires the conditional probabilities, which are straightforward to compute (Harris 2015; Appendix).
+Unfortunately, the exponentially large number of possible assemblages makes the normalizing constant for this joint probability distribution intractable when the number of species is larger than 20 or so.  However, it is generally straightforward to simulate examples of assemblages that are consistent with graphical models such as these, using Monte Carlo techniques like Gibbs sampling [@salakhutdinov_efficient_2012]. Gibbs sampling is especially convenient for these models because it only requires the conditional probabilities, which are straightforward to compute (Harris 2015; Appendix C.1).
 
 In each of the scenarios below, the “observed” landscapes were simulated using Gibbs sampling from a pre-specified set of “true” parameters, then stochastic approximation was used to recover these parameters from the simulated presence-absence data.
 
@@ -852,7 +887,7 @@ The Markov networks fit in @harris_estimating_2015 treated the $\alpha_i$ terms 
 
 A Markov network describes a probability distribution over possible assemblages. Since the model is a member of the exponential family it can be summarized without loss of information by its "sufficient statistics".  For the model presented here, the sufficient statistics include: the number of occurrences for each species, the number of co-occurrences between each species, and the cross-product between the species and environment matrices [@azaele_inferring_2010; @lee_learning_2012; @murphy_machine_2012].  Finding the maximum likelihood estimate for the model parameters is equivalent to minimizing the discrepancy between the values of the data's sufficient statistics and the expected sufficient statistics under the model  [@bickel_mathematical_1977]. Because fully-observed Markov networks, such as the ones analyzed here, have unimodal likelihood functions [@murphy_machine_2012], it is possible to find the global optimum by iteratively reducing the discrepancies between the sufficient statistics of the model and of the data to zero.
 
-In order to reduce the discrepancy between the observed and predicted sufficient statistics, the `rosalia` calculates each value exactly, averaging over all possible presence-absence combinations. Stochastic approximation [@robbins_stochastic_1951; @salakhutdinov_efficient_2012] instead estimates the expected values of the sufficient statistics by averaging over a more manageable number of simulated assemblages during each model-fitting iteration, while still retaining maximum likelihood convergence guarantees.  The procedure iterates through the following three steps as many times as needed (50,000 for these analyses; see Appendix for annotated R code):
+In order to reduce the discrepancy between the observed and predicted sufficient statistics, the `rosalia` calculates each value exactly, averaging over all possible presence-absence combinations. Stochastic approximation [@robbins_stochastic_1951; @salakhutdinov_efficient_2012] instead estimates the expected values of the sufficient statistics by averaging over a more manageable number of simulated assemblages during each model-fitting iteration, while still retaining maximum likelihood convergence guarantees.  The procedure iterates through the following three steps as many times as needed (50,000 for these analyses; see Appendix C.1 for annotated R code):
 
 1. Simulate a set of assemblages from the current model parameters and calculate sufficient statistics for the sample.
 
@@ -872,19 +907,19 @@ To demonstrate that my stochastic approximation implementation could converge to
 
 I then simulated a large landscape with 250 species and 2500 sites, representing a large data set roughly the size of the North American Breeding Bird Survey.  Each site on the landscape was represented by 5 environmental variables, which were drawn independently from Gaussian distributions with mean 0 and standard deviation 2.5.
 
-Each species was assigned two sets of coefficients.  The coefficients determining species’ responses to the environment were each drawn from standard normal distributions.  The coefficients describing species’ pairwise interactions were drawn from a mixture of normals (see Appendix) so that most interactions were weak and negative, but a few strong positive and interactions also occurred.
+Each species was assigned two sets of coefficients.  The coefficients determining species’ responses to the environment were each drawn from standard normal distributions.  The coefficients describing species’ pairwise interactions were drawn from a mixture of normals (see Appendix C.1) so that most interactions were weak and negative, but a few strong positive and interactions also occurred.
 
-The coefficients described above are sufficient to define each species' conditional occurrence probability (i.e. its probability of occurrence against any given backdrop of biotic and abiotic features).  I used these conditional probabilities to produce examples of communities that were consistent with the competition parameters and with the local environmental variables via Markov chain Monte Carlo (specifically, 1000 rounds of Gibbs sampling; see code in the Appendix). I then used the methods from the next section to attempt to infer the underlying parameters from the simulated data.
+The coefficients described above are sufficient to define each species' conditional occurrence probability (i.e. its probability of occurrence against any given backdrop of biotic and abiotic features).  I used these conditional probabilities to produce examples of communities that were consistent with the competition parameters and with the local environmental variables via Markov chain Monte Carlo (specifically, 1000 rounds of Gibbs sampling; see code in the Appendix C.1). I then used the methods from the next section to attempt to infer the underlying parameters from the simulated data.
 
 ## Results
 
 ![Stochastic approximation improves the model over time. **A.** With small networks where the exact maximum likelihood estimates are known, stochastic approximation approaches the global optimum very quickly (note the log scale of the y axis). Within a few seconds, the mean squared deviation between the approximate and exact estimates drops to less than 0.01; in less than a minute, it drops below 0.0001. For comparison, the `rosalia` package took about six minutes to find the maximum likelihood estimate. **B.** With larger networks, where the maximum likelihood estimate cannot be calculated exactly, stochastic approximation converges to an apparent optimum that explains most (but not all) of the variation in the "true" parameter values.](figures/3/convergence.pdf)
 
-For the smaller communities, the squared deviations between the exact estimates produced by the `rosalia` package and the ones produced by stochastic approximation quickly decayed to negligible levels (Figure 2A), indicating that the stochastic approximation procedure was implemented correctly and worked as the mathematical theory predicts.  
+For the smaller communities, the squared deviations between the exact estimates produced by the `rosalia` package and the ones produced by stochastic approximation quickly decayed to negligible levels (Figure 3.2.A), indicating that the stochastic approximation procedure was implemented correctly and worked as the mathematical theory predicts.  
 
 !["True" versus estimated network parameters for all 250 species' responses to the other 249 species in the data set (**A.** $R^2 = .71$) and to the 5 abiotic variables (**B.** $R^2 = .95$). ](figures/3/estimates.pdf)
 
-For the larger landscape, I found that the stochastic approximation approach achieved reasonably good performance after ten minutes of optimization (Figure 2B). After 50,000 iterations (about 5.4 hours on my laptop), the model was able to recover more than two thirds of the variance in species’ pairwise interactions($R^2 = 0.71$; Figure 3A), and nearly all of the variance in their responses to environmental variables ($R^2 = 0.95$; Figure 3B).
+For the larger landscape, I found that the stochastic approximation approach achieved reasonably good performance after ten minutes of optimization (Figure 3.2.B). After 50,000 iterations (about 5.4 hours on my laptop), the model was able to recover more than two thirds of the variance in species’ pairwise interactions($R^2 = 0.71$; Figure 3.3.A), and nearly all of the variance in their responses to environmental variables ($R^2 = 0.95$; Figure 3.3.B).
 
 ## Discussion
 
@@ -1060,7 +1095,7 @@ library(corpcor)
 set.seed(1)
 ```
 
-Generate the species interaction matrix from Figure 1.
+Generate the species interaction matrix from Figure 2.1.
 
 
 ```r
@@ -1966,13 +2001,13 @@ mean(boot_cors^2)
 \newpage
 
 
-
+\setstretch{2}
 
 \section{Appendices to Chapter 3}
 
-\setstretch{1}
-
 \subsection{Simulation and evaluation for the large landscape}
+
+\setstretch{1}
 
 ```r
 library(rosalia)
