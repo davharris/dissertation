@@ -51,11 +51,9 @@ Andrew Sih, Chair
 Marissa L. Baskett
 
 \underline{\hspace{8cm}}\\
-Robert Hijmans
-
-\underline{\hspace{8cm}}\\
 Richard McElreath
 
+\vspace{18 pt}
 
 Committee in charge
 
