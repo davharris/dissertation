@@ -38,7 +38,7 @@ UNIVERSITY OF CALIFORNIA
 
 DAVIS
 
-\vspace{18 pt}
+\vspace{36 pt}
 
 Approved:
 
@@ -53,7 +53,7 @@ Marissa L. Baskett
 \underline{\hspace{8cm}}\\
 Richard McElreath
 
-\vspace{18 pt}
+\vspace{36 pt}
 
 Committee in charge
 
@@ -95,6 +95,8 @@ Marissa Baskett's careful, thoughtful approach to science, writing, programming,
 Robert Hijmans helped give me the confidence to dive into the vast and unfamiliar literature on species distribution models halfway through my graduate career and to make contributions of my own.
 
 A dissertation is an ultramarathon, and I'm deeply grateful to a number of other scientists for their help along the way; many of these are acknowledged at the end of each chapter.  I'd like to give special thanks to my friend Susannah Tysor, for always believing in me, and for helping me believe in myself.
+
+My parents, Stephen and Ruth, have consistently provided me with more support than I ever could have asked for, in every aspect of my life that allowed me to succeed.  I will always be grateful to them.
 
 Finally, I would like to thank Anna Perry, for her dedication, support, and love.  Whenever I've talked myself into a corner and didn't know how to proceed with my writing or research, her advice has always helped me see the solutions I'd missed.  Anna's integrity, conscientiousness, and commitment to doing her best in all areas of life is truly inspiring, and I love her for too many reasons to list here.
 
